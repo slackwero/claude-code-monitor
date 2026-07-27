@@ -13,11 +13,18 @@ DEVICE="${CATT_DEVICE:-$(node -p "require('$DIR/config.json').device" 2>/dev/nul
 case "$1" in
   start)
     sh "$DIR/scripts/install-autostart.sh"
+    # el servidor recién cargado por launchd puede tardar un instante en escuchar
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      curl -s -o /dev/null --connect-timeout 1 "http://127.0.0.1:$PORT/" && break
+      sleep 1
+    done
+    sh "$DIR/scripts/cast.sh"
     echo "Monitor arriba. Sobrevive reinicios de la Mac (launchd)."
     ;;
   stop)
     sh "$DIR/scripts/install-autostart.sh" --uninstall
-    echo "Monitor detenido (servidor + keepalive)."
+    catt -d "$DEVICE" stop >/dev/null 2>&1 || true
+    echo "Monitor detenido (servidor + keepalive + cast)."
     ;;
   restart)
     sh "$DIR/scripts/install-autostart.sh"
@@ -47,9 +54,9 @@ case "$1" in
     cat <<EOF
 claude-monitor — dashboard de Claude Code en el Nest Hub
 
-  claude-monitor start      levanta todo (servidor + keepalive) y lo deja
-                            instalado para que arranque solo al iniciar sesión
-  claude-monitor stop       detiene y desinstala el autostart
+  claude-monitor start      levanta todo (servidor + keepalive), castea al Hub
+                            y lo deja instalado para arrancar solo al iniciar sesión
+  claude-monitor stop       detiene, desinstala el autostart y cierra el cast del Hub
   claude-monitor restart    relanza los servicios
   claude-monitor status     servidor, launchd y estado del Hub
   claude-monitor cast       fuerza un re-cast al Hub ahora
