@@ -150,7 +150,7 @@ main {
   white-space: nowrap;
   flex: 1;
 }
-.session-status { font-size: 7px; color: var(--dim); }
+.session-status { font-size: 8px; color: var(--dim); }
 .session-card[data-status="waiting"] .session-status { color: var(--amber); }
 .session-card[data-status="working"] .session-status { color: var(--green); }
 
@@ -163,8 +163,8 @@ main {
 }
 
 /* ---------- consumos ---------- */
-.usage-label { font-size: 7px; color: var(--dim); letter-spacing: 1px; margin-bottom: 4px; }
-.usage-sub { font-size: 7px; color: var(--dim); line-height: 1.8; }
+.usage-label { font-size: 8px; color: var(--dim); letter-spacing: 1px; margin-bottom: 4px; }
+.usage-sub { font-size: 8px; color: var(--dim); line-height: 1.8; }
 #usage-stale { color: var(--amber); float: right; }
 
 #block-bar {
@@ -186,11 +186,11 @@ main {
 #usage-bars { margin-top: 10px; overflow: hidden; }
 
 .ubar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
-.ubar-label { width: 118px; flex-shrink: 0; font-size: 7px; color: var(--dim); letter-spacing: 1px; }
+.ubar-label { width: 118px; flex-shrink: 0; font-size: 8px; color: var(--dim); letter-spacing: 1px; }
 .ubar { flex: 1; display: flex; gap: 3px; height: 13px; }
 .ubar-seg { flex: 1; background: #33221733; border: 1px solid var(--panel-edge); }
-.ubar-val { width: 128px; flex-shrink: 0; text-align: right; font-size: 9px; color: var(--ink); text-shadow: 2px 2px 0 #000; }
-.ubar-val small { display: block; font-size: 6px; color: var(--dim); text-shadow: none; }
+.ubar-val { width: 128px; flex-shrink: 0; text-align: right; font-size: 10px; color: var(--ink); text-shadow: 2px 2px 0 #000; }
+.ubar-val small { display: block; font-size: 7px; color: var(--dim); text-shadow: none; }
 
 .ubar-row .ubar-seg.on { background: var(--ink); border-color: var(--ink); box-shadow: inset -2px -2px 0 rgba(0,0,0,.35); }
 .ubar-row.fable .ubar-label, .ubar-row.fable .ubar-val { color: var(--orange); }
@@ -205,13 +205,13 @@ main {
   display: flex;
   gap: 8px;
   align-items: baseline;
-  font-size: 8px;
+  font-size: 9px;
   animation: evt-in .25s steps(4);
 }
 @keyframes evt-in { from { transform: translateX(20px); opacity: 0; } }
 .evt-time { color: var(--dim); flex-shrink: 0; }
 .evt-icon { flex-shrink: 0; width: 14px; text-align: center; }
-.evt-project { color: var(--orange); flex-shrink: 0; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.evt-project { color: var(--orange); flex-shrink: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .evt-detail { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .evt[data-type="Stop"] .evt-detail { color: var(--green); }
 .evt[data-type="Notification"] .evt-detail { color: var(--amber); }
