@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1">
+<title>CLAUDE MONITOR</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="crt"></div>
+
+<header id="header">
+  <canvas id="mascot" width="64" height="60"></canvas>
+  <h1>CLAUDE<span>·</span>MONITOR</h1>
+  <div id="header-right">
+    <button id="sound-chip" class="chip" hidden>&#128264; TOCA P/SONIDO</button>
+    <button id="mode-toggle" class="chip" data-on="false">REMOTO <b>OFF</b></button>
+    <div id="clock">--:--</div>
+  </div>
+</header>
+
+<main>
+  <section id="sessions-panel" class="panel">
+    <h2>SESIONES</h2>
+    <div id="sessions-list"></div>
+    <div id="sessions-empty" class="empty">SIN SESIONES<br>&#9608; zZz</div>
+  </section>
+
+  <div id="right-col">
+    <section id="usage-panel" class="panel">
+      <h2>CONSUMOS <span id="usage-stale" hidden>&#9888; STALE</span></h2>
+      <div id="block-row">
+        <div class="usage-label">BLOQUE 5H <span id="block-reset"></span></div>
+        <div id="block-bar"></div>
+        <div id="block-info" class="usage-sub"></div>
+      </div>
+      <div id="usage-grid">
+        <div class="stat"><div class="usage-label">HOY</div><div class="stat-val" id="today-cost">--</div><div class="usage-sub" id="today-tokens"></div></div>
+        <div class="stat"><div class="usage-label">SEMANA</div><div class="stat-val" id="week-cost">--</div><div class="usage-sub" id="week-tokens"></div></div>
+        <div class="stat" id="fable-stat"><div class="usage-label">FABLE 5 HOY</div><div class="stat-val" id="fable-cost">--</div><div class="usage-sub" id="fable-tokens"></div></div>
+        <div class="stat"><div class="usage-label">OTROS MODELOS</div><div id="models-list" class="usage-sub"></div></div>
+      </div>
+    </section>
+
+    <section id="events-panel" class="panel">
+      <h2>EVENTOS</h2>
+      <div id="events-list"></div>
+    </section>
+  </div>
+</main>
+
+<div id="approval-overlay" hidden>
+  <div id="approval-card">
+    <h2>&#9888; APROBACION</h2>
+    <div id="approval-project" class="usage-label"></div>
+    <div id="approval-tool"></div>
+    <pre id="approval-input"></pre>
+    <div id="approval-countdown"><div id="approval-countdown-fill"></div></div>
+    <div id="approval-buttons">
+      <button id="btn-deny">DENEGAR</button>
+      <button id="btn-allow">APROBAR</button>
+    </div>
+  </div>
+</div>
+
+<script src="logo.js"></script>
+<script src="audio.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
