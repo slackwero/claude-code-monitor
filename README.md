@@ -12,13 +12,33 @@ tocando la pantalla del Hub**.
 - [catt](https://github.com/skorokithakis/catt) para castear: `pipx install catt` (o `pip install catt`)
 - ccusage se ejecuta solo vía `npx` (no hay que instalarlo)
 
-## Uso
+## Uso rápido (CLI)
+
+`bin/claude-monitor` está symlinkeado en `~/.local/bin`:
+
+```sh
+claude-monitor start      # levanta todo y lo deja auto-arrancando al iniciar sesión (launchd)
+claude-monitor status     # servidor, launchd y estado del Hub
+claude-monitor stop       # detiene y desinstala el autostart
+claude-monitor cast       # fuerza un re-cast ahora
+claude-monitor logs       # sigue los logs en vivo
+claude-monitor hooks      # (re)instala los hooks de Claude Code
+```
+
+El autostart usa dos LaunchAgents (`com.nest-hub-monitor.server` y `.keepalive`)
+con `KeepAlive`: se relanzan si mueren y sobreviven reinicios de la Mac. Logs en
+`~/Library/Logs/nest-hub-monitor/`. Nota: el keepalive corre en Node (no sh)
+porque TCC de macOS no deja a `/bin/sh` leer `~/Documents` bajo launchd.
+
+## Scripts npm equivalentes
 
 ```sh
 npm run install-hooks   # registra los hooks en ~/.claude/settings.json (merge aditivo + backup)
-npm start               # servidor en http://0.0.0.0:8787
+npm start               # servidor en http://0.0.0.0:8787 (foreground)
 npm run cast            # castea al Nest Hub (usa la IP LAN de la Mac)
 npm run keepalive       # re-castea si el Hub vuelve a su pantalla ambiente (~10 min)
+npm run autostart       # = claude-monitor start
+npm run autostart-off   # = claude-monitor stop
 ```
 
 - El nombre del dispositivo se configura en `config.json` (`device`) o con `CATT_DEVICE`; descúbrelo con `catt scan`.

@@ -8,6 +8,8 @@
     "install-hooks": "node hooks/install-hooks.js",
     "uninstall-hooks": "node hooks/install-hooks.js --uninstall",
     "cast": "sh scripts/cast.sh",
-    "keepalive": "sh scripts/keepalive.sh"
+    "keepalive": "node scripts/keepalive.js",
+    "autostart": "sh scripts/install-autostart.sh",
+    "autostart-off": "sh scripts/install-autostart.sh --uninstall"
   }
 }
