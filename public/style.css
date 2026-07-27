@@ -84,7 +84,9 @@ html, body {
 #mode-toggle[data-on="true"] { color: var(--bg); background: var(--green); border-color: var(--green); }
 #mode-toggle[data-on="true"] b { color: var(--bg); }
 #mode-toggle b { color: var(--red); }
-#sound-chip { color: var(--amber); border-color: var(--amber); }
+#sound-chip[data-state="locked"] { color: var(--amber); border-color: var(--amber); }
+#sound-chip[data-state="on"] { color: var(--green); border-color: var(--panel-edge); }
+#sound-chip[data-state="muted"] { color: var(--dim); border-color: var(--panel-edge); }
 
 /* ---------- layout ---------- */
 main {
