@@ -26,6 +26,18 @@ const sseClients = new Set();
 let remoteMode = false;
 let usageCache = { data: null, fetchedAt: null, stale: true, error: null };
 
+// Persistencia de la cache de consumos: el último dato bueno sobrevive reinicios
+// y se muestra como stale mientras llega el primer refresh real.
+const USAGE_CACHE_FILE = path.join(ROOT, '.usage-cache.json');
+try {
+  const saved = JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8'));
+  if (saved && saved.data) usageCache = { ...saved, stale: true, error: null };
+} catch (_) { /* sin cache previa o corrupta: se parte de cero */ }
+
+function persistUsageCache() {
+  fs.writeFile(USAGE_CACHE_FILE, JSON.stringify(usageCache), (_) => { /* fail-open */ });
+}
+
 // ---------------------------------------------------------------- SSE
 function sseSend(res, event, data) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -226,7 +238,10 @@ function fetchPlanUsage() {
       res.on('end', () => {
         try {
           const j = JSON.parse(data);
-          const limits = j.limits || [];
+          // respuesta de error (p.ej. rate_limit_error) o sin límites: tratar como
+          // fallo para no pisar el último plan bueno de la cache con un plan vacío
+          if (!Array.isArray(j.limits) || !j.limits.length) return resolve(null);
+          const limits = j.limits;
           const session = limits.find((l) => l.kind === 'session');
           const weeklyAll = limits.find((l) => l.kind === 'weekly_all');
           const scoped = limits.filter((l) => l.kind === 'weekly_scoped').map((l) => ({
@@ -270,6 +285,7 @@ async function refreshUsage() {
         stale: !(plan && daily),
         error: null,
       };
+      persistUsageCache();
     } else {
       usageCache = { ...usageCache, stale: true, error: 'sin datos de uso' };
     }
