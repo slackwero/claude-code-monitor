@@ -39,12 +39,25 @@
     updateMascot();
   }
 
+  const MASCOT_TEXT = {
+    alert: '&#9888; APROBACION &#9888;',
+    waiting: 'ESPERANDO...',
+    working: 'TRABAJANDO',
+    sleep: 'zZz',
+  };
+
   function updateMascot() {
-    if (state.activeApproval) return window.mascot.setState('alert');
-    const st = state.sessions.map((s) => s.status);
-    if (st.includes('waiting')) window.mascot.setState('waiting');
-    else if (st.includes('working')) window.mascot.setState('working');
-    else window.mascot.setState('sleep');
+    let m = 'sleep';
+    if (state.activeApproval) m = 'alert';
+    else {
+      const st = state.sessions.map((s) => s.status);
+      if (st.includes('waiting')) m = 'waiting';
+      else if (st.includes('working')) m = 'working';
+    }
+    window.mascot.setState(m);
+    const label = $('mascot-status');
+    label.dataset.state = m;
+    label.innerHTML = MASCOT_TEXT[m];
   }
 
   // ---------------------------------------------------------------- eventos

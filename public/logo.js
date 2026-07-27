@@ -17,19 +17,21 @@
     '...#..#..#..#...',
     '...#..#..#..#...',
   ];
-  const CELL = 4; // 16 cols * 4px = 64px
 
   const canvas = document.getElementById('mascot');
   const ctx = canvas.getContext('2d');
+  const CELL = Math.floor(canvas.width / GRID[0].length);
+  const S = CELL / 4; // factor de escala para desplazamientos de animación
+  const offY = Math.floor((canvas.height - GRID.length * CELL) / 2);
   let state = 'sleep';
   let frame = 0;
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const bobY = state === 'working' ? (frame % 8 < 4 ? 0 : 1)
-               : state === 'waiting' ? (frame % 4 < 2 ? 0 : -3)
+    const bobY = state === 'working' ? (frame % 8 < 4 ? 0 : S)
+               : state === 'waiting' ? (frame % 4 < 2 ? 0 : -3 * S)
                : 0;
-    const shakeX = state === 'alert' ? ((frame % 2) * 2 - 1) : 0;
+    const shakeX = state === 'alert' ? (((frame % 2) * 2 - 1) * S) : 0;
     const blink = state === 'working' && frame % 24 >= 22; // parpadeo ocasional
     const eyesClosed = state === 'sleep' || blink;
 
@@ -44,17 +46,18 @@
                         : state === 'alert' ? '#e05b4b'
                         : '#D97757';
         }
-        ctx.fillRect(c * CELL + shakeX, r * CELL + bobY + 4, CELL, CELL);
+        ctx.fillRect(c * CELL + shakeX, r * CELL + bobY + offY, CELL, CELL);
       }
     }
 
-    // zZz cuando duerme
+    // zZz cuando duerme, escalado al tamaño del canvas
     if (state === 'sleep' && frame % 16 < 12) {
       ctx.fillStyle = '#a08469';
       const zs = [[58, 8], [54, 14], [50, 20]];
       const n = 1 + Math.floor((frame % 16) / 4);
-      ctx.font = '8px monospace';
-      for (let i = 0; i < Math.min(n, 3); i++) ctx.fillRect(zs[i][0], zs[i][1], 3, 3);
+      for (let i = 0; i < Math.min(n, 3); i++) {
+        ctx.fillRect(zs[i][0] * S, zs[i][1] * S, 3 * S, 3 * S);
+      }
     }
   }
 
