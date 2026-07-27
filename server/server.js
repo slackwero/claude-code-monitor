@@ -101,6 +101,13 @@ function handleHookEvent(payload) {
     case 'SubagentStop':
       detail = 'Subagente terminado';
       break;
+    case 'SubagentStart':
+      detail = 'Subagente iniciado';
+      break;
+    case 'PermissionRequest':
+      s.status = 'waiting';
+      detail = payload.tool_name ? `Permiso: ${payload.tool_name}` : 'Esperando permiso';
+      break;
     case 'PreCompact':
       detail = 'Compactando contexto';
       break;

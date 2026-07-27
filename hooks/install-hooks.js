@@ -14,7 +14,7 @@ const FORWARD = path.join(HOOKS_DIR, 'forward-event.sh');
 const GATE = path.join(HOOKS_DIR, 'approval-gate.sh');
 const UNINSTALL = process.argv.includes('--uninstall');
 
-const FORWARD_EVENTS = ['SessionStart', 'SessionEnd', 'Notification', 'Stop', 'SubagentStop', 'PreCompact', 'UserPromptSubmit'];
+const FORWARD_EVENTS = ['SessionStart', 'SessionEnd', 'Notification', 'Stop', 'SubagentStop', 'PreCompact', 'UserPromptSubmit', 'PermissionRequest', 'SubagentStart'];
 const GATE_MATCHER = 'Bash|Write|Edit|MultiEdit|NotebookEdit';
 
 function isOurs(hook) {

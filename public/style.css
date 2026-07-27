@@ -237,6 +237,7 @@ main {
 .evt-detail { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .evt[data-type="Stop"] .evt-detail { color: var(--green); }
 .evt[data-type="Notification"] .evt-detail { color: var(--amber); }
+.evt[data-type="PermissionRequest"] .evt-detail { color: var(--amber); }
 .evt[data-type="error"] .evt-detail { color: var(--red); }
 
 /* ---------- modal aprobación ---------- */

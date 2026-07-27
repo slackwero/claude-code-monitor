@@ -10,7 +10,9 @@
     done:     [[784, .1], [784, .08], [1047, .25]],                          // fanfarria corta
     end:      [[659, .12], [523, .12], [392, .2]],                           // despedida descendente
     notify:   [[988, .09], [0, .05], [988, .12]],                            // doble bip ámbar
-    subagent: [[740, .08], [880, .12]],                                      // bip doble suave
+    subagent: [[740, .08], [880, .12]],                                      // subagente termina: sube
+    subagentStart: [[880, .08], [740, .12]],                                 // subagente arranca: baja
+    prompt: [[1047, .07], [1319, .1]],                                       // nueva solicitud: blip alegre
     compact:  [[300, .04], [400, .04], [500, .04], [600, .04], [700, .08]],  // barrido
     error:    [[330, .15], [247, .15], [175, .3]],                           // descendente grave
     approval: [[880, .12], [0, .06], [880, .12], [0, .06], [1175, .3]],      // alerta insistente
@@ -83,7 +85,7 @@
   if (mascot) {
     const startPress = () => {
       pressTimer = setTimeout(() => {
-        const names = ['start', 'done', 'notify', 'subagent', 'compact', 'error', 'approval', 'end'];
+        const names = ['start', 'prompt', 'done', 'notify', 'subagentStart', 'subagent', 'compact', 'error', 'approval', 'end'];
         names.forEach((n, i) => setTimeout(() => play(n), i * 900));
       }, 1000);
     };

@@ -64,6 +64,7 @@
   const EVT_ICON = {
     SessionStart: '&#9654;', SessionEnd: '&#9632;', Stop: '&#10003;', SubagentStop: '&#9720;',
     Notification: '&#9888;', PreCompact: '&#9851;', UserPromptSubmit: '&#9998;',
+    PermissionRequest: '&#9888;', SubagentStart: '&#9655;',
   };
 
   function renderEvents() {
@@ -275,7 +276,8 @@
   // ---------------------------------------------------------------- SSE
   const SOUND_BY_EVENT = {
     SessionStart: 'start', SessionEnd: 'end', Stop: 'done', SubagentStop: 'subagent',
-    Notification: 'notify', PreCompact: 'compact',
+    SubagentStart: 'subagentStart', Notification: 'notify', PreCompact: 'compact',
+    PermissionRequest: 'notify', UserPromptSubmit: 'prompt',
   };
 
   let es = null;
