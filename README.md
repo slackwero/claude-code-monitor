@@ -44,11 +44,18 @@ aprobaciones, descendente grave en errores. Si el receiver bloquea el autoplay,
 aparece el chip "TOCA P/SONIDO": un toque en la pantalla lo desbloquea.
 Mantén presionado el logo ~1s para probar todos los jingles.
 
-## Limitaciones conocidas
+## Fuentes de datos de consumo
 
-- No existe API oficial del % exacto de la suscripción Max: los consumos son
-  estimaciones locales de ccusage (equivalente costo API). La barra "BLOQUE 5H"
-  muestra el tiempo transcurrido del bloque activo, no el % del límite.
+- **% de los límites del plan** (bloque 5h, semanal todos, semanal Fable): el
+  endpoint OAuth `api.anthropic.com/api/oauth/usage` — los mismos números que
+  muestra `/usage` en Claude Code. El token se lee del Keychain
+  (`security find-generic-password -s "Claude Code-credentials"`) en runtime,
+  solo vive en memoria del servidor y nunca se loguea. Si el Keychain no está
+  disponible, las barras caen al fallback de estimaciones ccusage.
+- **Dólares y tokens**: estimaciones locales de ccusage (equivalente costo API),
+  mostradas junto a cada barra.
+
+## Limitaciones conocidas
 - El desglose por proyecto no está disponible en el ccusage actual (sus
   sesiones son UUIDs sin ruta), por eso el panel no lo incluye.
 - La tarjeta de aprobación muestra el comando original, antes de la reescritura
