@@ -20,6 +20,7 @@
     compact:  [[300, .04], [400, .04], [500, .04], [600, .04], [700, .08]],  // barrido
     error:    [[330, .15], [247, .15], [175, .3]],                           // descendente grave
     approval: [[880, .12], [0, .06], [880, .12], [0, .06], [1175, .3]],      // alerta insistente
+    pipe:     [[784, .05], [698, .05], [622, .05], [554, .05], [494, .05], [440, .05], [392, .05], [349, .09]], // warp pipe estilo Mario: bajada escalonada
     toggle:   [[1319, .06]],                                                 // click
   };
 
@@ -117,7 +118,7 @@
   if (mascot) {
     const startPress = () => {
       pressTimer = setTimeout(() => {
-        const names = ['start', 'prompt', 'done', 'notify', 'subagentStart', 'subagent', 'compact', 'error', 'approval', 'end'];
+        const names = ['start', 'prompt', 'done', 'notify', 'subagentStart', 'subagent', 'compact', 'error', 'approval', 'pipe', 'end'];
         names.forEach((n, i) => setTimeout(() => play(n), i * 900));
       }, 1000);
     };

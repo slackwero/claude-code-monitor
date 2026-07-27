@@ -248,6 +248,7 @@
   function decide(decision) {
     const a = state.activeApproval;
     if (!a) return;
+    if (decision === 'allow') window.chip.play('pipe');
     fetch('/approval/decide', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
