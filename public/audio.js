@@ -14,7 +14,7 @@
     done:     [[1319, .12], [1568, .12], [2637, .12], [2093, .12], [2349, .12], [3136, .22]], // 1-UP estilo Mario
     end:      [[659, .12], [523, .12], [392, .2]],                           // despedida descendente
     notify:   [[988, .09], [0, .05], [988, .12]],                            // doble bip ámbar
-    subagent: [[740, .08], [880, .12]],                                      // subagente termina: sube
+    subagent: [[988, .08], [1319, .38]],                                     // moneda estilo Mario: B5 -> E6
     subagentStart: [[880, .08], [740, .12]],                                 // subagente arranca: baja
     prompt:   [[1047, .07], [1319, .1]],                                     // nueva solicitud: blip alegre
     compact:  [[300, .04], [400, .04], [500, .04], [600, .04], [700, .08]],  // barrido
