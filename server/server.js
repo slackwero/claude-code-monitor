@@ -2,6 +2,7 @@
 'use strict';
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -190,29 +191,80 @@ function runCcusage(args) {
   });
 }
 
+// Límites reales del plan (los mismos % que muestra /usage y la app de Claude):
+// token OAuth desde el Keychain -> GET /api/oauth/usage. Solo en memoria, jamás se loguea.
+function getOauthToken() {
+  return new Promise((resolve) => {
+    execFile('security', ['find-generic-password', '-s', 'Claude Code-credentials', '-w'], { timeout: 10000 }, (err, stdout) => {
+      if (err) return resolve(null);
+      try { resolve(JSON.parse(stdout).claudeAiOauth.accessToken || null); } catch (_) { resolve(null); }
+    });
+  });
+}
+
+function fetchPlanUsage() {
+  return new Promise(async (resolve) => {
+    const token = await getOauthToken();
+    if (!token) return resolve(null);
+    const req = https.get('https://api.anthropic.com/api/oauth/usage', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'anthropic-beta': 'oauth-2025-04-20',
+        'Content-Type': 'application/json',
+      },
+      timeout: 15000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (c) => { data += c; });
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          const limits = j.limits || [];
+          const session = limits.find((l) => l.kind === 'session');
+          const weeklyAll = limits.find((l) => l.kind === 'weekly_all');
+          const scoped = limits.filter((l) => l.kind === 'weekly_scoped').map((l) => ({
+            name: l.scope?.model?.display_name || 'modelo',
+            percent: l.percent,
+            resetsAt: l.resets_at,
+          }));
+          resolve({
+            session: session ? { percent: session.percent, resetsAt: session.resets_at } : null,
+            weeklyAll: weeklyAll ? { percent: weeklyAll.percent, resetsAt: weeklyAll.resets_at } : null,
+            scoped,
+          });
+        } catch (_) { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
 let usageRunning = false;
 async function refreshUsage() {
   if (usageRunning) return;
   usageRunning = true;
   try {
-    const [blocks, daily, weekly] = await Promise.all([
+    const [blocks, daily, weekly, plan] = await Promise.all([
       runCcusage(['blocks', '--active', '--token-limit', 'max']),
       runCcusage(['daily', '--breakdown', '--since', sinceDaysAgo(7)]),
       runCcusage(['weekly']),
+      fetchPlanUsage(),
     ]);
-    if (blocks || daily || weekly) {
+    if (blocks || daily || weekly || plan) {
       usageCache = {
         data: {
           blocks: blocks || usageCache.data?.blocks || null,
           daily: daily || usageCache.data?.daily || null,
           weekly: weekly || usageCache.data?.weekly || null,
+          plan: plan || usageCache.data?.plan || null,
         },
         fetchedAt: Date.now(),
-        stale: !(blocks && daily),
+        stale: !(plan && daily),
         error: null,
       };
     } else {
-      usageCache = { ...usageCache, stale: true, error: 'ccusage sin datos' };
+      usageCache = { ...usageCache, stale: true, error: 'sin datos de uso' };
     }
     broadcast('usage', usageCache);
   } finally {

@@ -108,66 +108,85 @@
     if (!u || !u.data) return;
     $('usage-stale').hidden = !u.stale;
 
-    // bloque 5h: barra segmentada por tiempo transcurrido
+    // bloque 5h: % REAL del límite de sesión del plan (mismo dato que /usage);
+    // fallback al tiempo transcurrido si el plan no está disponible
+    const plan = u.data.plan;
     const block = u.data.blocks?.blocks?.find((b) => b.isActive);
     const bar = $('block-bar');
     bar.innerHTML = '';
     const SEGS = 20;
     let pct = 0;
-    if (block) {
-      const start = Date.parse(block.startTime);
-      const end = Date.parse(block.endTime);
-      pct = Math.min(1, Math.max(0, (Date.now() - start) / (end - start)));
-      const resetAt = new Date(end);
-      $('block-reset').textContent = `RESET ${String(resetAt.getHours()).padStart(2, '0')}:${String(resetAt.getMinutes()).padStart(2, '0')}`;
-      $('block-info').innerHTML = `<b>${fmtTokens(block.totalTokens)}</b> tok · <b>${fmtCost(block.costUSD)}</b>` +
-        (block.projection ? ` · proy ${fmtCost(block.projection.totalCost)}` : '');
+    let hasBlock = false;
+    if (plan?.session) {
+      hasBlock = true;
+      pct = Math.min(1, plan.session.percent / 100);
+      $('block-reset').textContent = `${plan.session.percent}% · RESET ${fmtTime(plan.session.resetsAt)}`;
+    } else if (block) {
+      hasBlock = true;
+      pct = Math.min(1, Math.max(0, (Date.now() - Date.parse(block.startTime)) / (Date.parse(block.endTime) - Date.parse(block.startTime))));
+      $('block-reset').textContent = `RESET ${fmtTime(block.endTime)}`;
     } else {
       $('block-reset').textContent = 'SIN BLOQUE';
-      $('block-info').textContent = 'sin actividad en el bloque actual';
     }
+    $('block-info').innerHTML = block
+      ? `<b>${fmtTokens(block.totalTokens)}</b> tok · <b>${fmtCost(block.costUSD)}</b>` +
+        (block.projection ? ` · proy ${fmtCost(block.projection.totalCost)}` : '')
+      : 'sin actividad en el bloque actual';
     for (let i = 0; i < SEGS; i++) {
       const seg = document.createElement('div');
       seg.className = 'block-seg';
-      if (block && i < Math.round(pct * SEGS)) {
+      if (hasBlock && i < Math.round(pct * SEGS)) {
         seg.classList.add('on');
         if (pct > 0.8) seg.classList.add('hot');
       }
       bar.appendChild(seg);
     }
 
-    // hoy / semana / por modelo: todo como barras segmentadas, con el $ al lado.
-    // Escalas: HOY vs el día más caro de la semana; SEMANA vs la mejor semana;
-    // modelos como proporción del gasto de hoy.
+    // barras con los % REALES de los límites del plan (como /usage);
+    // el $ de ccusage acompaña a cada barra como referencia de costo.
     const days = u.data.daily?.daily || [];
     const today = days.find((d) => d.period === todayPeriod());
-    const maxDaily = Math.max(...days.map((d) => d.totalCost), 0.01);
-
     const weeks = u.data.weekly?.weekly || [];
     const week = weeks[weeks.length - 1];
-    const maxWeekly = Math.max(...weeks.map((w) => w.totalCost), 0.01);
-
-    const rows = [
-      { label: 'HOY', cost: today?.totalCost, tok: today?.totalTokens, pct: (today?.totalCost || 0) / maxDaily, cls: '' },
-      { label: 'SEMANA', cost: week?.totalCost, tok: week?.totalTokens, pct: (week?.totalCost || 0) / maxWeekly, cls: '' },
-    ];
     const breakdowns = today?.modelBreakdowns || [];
     const fable = breakdowns.find((m) => /fable/i.test(m.modelName));
+
+    const rows = [];
+    const maxDaily = Math.max(...days.map((d) => d.totalCost), 0.01);
     rows.push({
-      label: 'FABLE 5 HOY',
-      cost: fable?.cost,
-      tok: fable ? fable.cacheCreationTokens + fable.cacheReadTokens + fable.inputTokens + fable.outputTokens : null,
-      pct: today?.totalCost ? (fable?.cost || 0) / today.totalCost : 0,
-      cls: 'fable',
+      label: 'HOY $',
+      main: fmtCost(today?.totalCost),
+      sub: today ? fmtTokens(today.totalTokens) + ' tok' : 'sin datos hoy',
+      pct: (today?.totalCost || 0) / maxDaily,
+      cls: '',
     });
-    for (const m of breakdowns.filter((b) => !/fable/i.test(b.modelName)).slice(0, 3)) {
+    if (plan?.weeklyAll) {
       rows.push({
-        label: modelLabel(m.modelName) + ' HOY',
-        cost: m.cost,
-        tok: m.cacheCreationTokens + m.cacheReadTokens + m.inputTokens + m.outputTokens,
-        pct: today?.totalCost ? m.cost / today.totalCost : 0,
-        cls: 'model',
+        label: 'SEMANA TODOS',
+        main: plan.weeklyAll.percent + '%',
+        sub: (week ? fmtCost(week.totalCost) + ' · ' : '') + fmtDay(plan.weeklyAll.resetsAt),
+        pct: plan.weeklyAll.percent / 100,
+        cls: '',
       });
+    }
+    for (const s of (plan?.scoped || [])) {
+      const isFable = /fable/i.test(s.name);
+      const weekModel = week?.modelBreakdowns?.find((m) => new RegExp(s.name, 'i').test(m.modelName));
+      rows.push({
+        label: s.name.toUpperCase() + ' SEMANA',
+        main: s.percent + '%',
+        sub: (weekModel ? fmtCost(weekModel.cost) + ' · ' : '') + fmtDay(s.resetsAt),
+        pct: s.percent / 100,
+        cls: isFable ? 'fable' : 'model',
+      });
+    }
+    if (!plan) {
+      // fallback sin API del plan: semana en $ relativo a la mejor semana
+      const maxWeekly = Math.max(...weeks.map((w) => w.totalCost), 0.01);
+      rows.push({ label: 'SEMANA $', main: fmtCost(week?.totalCost), sub: week ? fmtTokens(week.totalTokens) + ' tok' : '', pct: (week?.totalCost || 0) / maxWeekly, cls: '' });
+      if (fable) {
+        rows.push({ label: 'FABLE 5 HOY', main: fmtCost(fable.cost), sub: 'del total de hoy', pct: today?.totalCost ? fable.cost / today.totalCost : 0, cls: 'fable' });
+      }
     }
 
     const SEGS_U = 16;
@@ -179,9 +198,18 @@
       const segsOn = Math.round(Math.min(1, Math.max(0, r.pct)) * SEGS_U);
       row.innerHTML = `<div class="ubar-label">${r.label}</div>
         <div class="ubar">${Array.from({ length: SEGS_U }, (_, i) => `<div class="ubar-seg${i < segsOn ? ' on' : ''}"></div>`).join('')}</div>
-        <div class="ubar-val">${fmtCost(r.cost)}<small>${r.tok != null ? fmtTokens(r.tok) + ' tok' : 'sin uso hoy'}</small></div>`;
+        <div class="ubar-val">${r.main}<small>${r.sub}</small></div>`;
       wrap.appendChild(row);
     }
+  }
+
+  function fmtTime(iso) {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  }
+  function fmtDay(iso) {
+    const d = new Date(iso);
+    return ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'][d.getDay()] + ' ' + fmtTime(iso);
   }
 
   // ---------------------------------------------------------------- aprobaciones

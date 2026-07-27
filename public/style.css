@@ -211,7 +211,7 @@ main {
 .ubar-label { width: 118px; flex-shrink: 0; font-size: 8px; color: var(--dim); letter-spacing: 1px; }
 .ubar { flex: 1; display: flex; gap: 3px; height: 13px; }
 .ubar-seg { flex: 1; background: #33221733; border: 1px solid var(--panel-edge); }
-.ubar-val { width: 128px; flex-shrink: 0; text-align: right; font-size: 10px; color: var(--ink); text-shadow: 2px 2px 0 #000; }
+.ubar-val { width: 140px; flex-shrink: 0; text-align: right; font-size: 10px; color: var(--ink); text-shadow: 2px 2px 0 #000; }
 .ubar-val small { display: block; font-size: 7px; color: var(--dim); text-shadow: none; }
 
 .ubar-row .ubar-seg.on { background: var(--ink); border-color: var(--ink); box-shadow: inset -2px -2px 0 rgba(0,0,0,.35); }
