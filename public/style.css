@@ -113,8 +113,8 @@ main {
 
 #sessions-panel { width: 340px; flex-shrink: 0; display: flex; flex-direction: column; }
 #right-col { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-#usage-panel { flex-shrink: 0; }
-#events-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#usage-panel { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+#events-panel { flex: 1 1 0; display: flex; flex-direction: column; min-height: 0; }
 
 /* ---------- sesiones ---------- */
 #sessions-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
@@ -183,16 +183,20 @@ main {
 #block-reset { color: var(--ink); float: right; }
 #block-info b { color: var(--orange); }
 
-#usage-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1.3fr;
-  gap: 10px;
-  margin-top: 12px;
-}
-.stat-val { font-size: 16px; color: var(--ink); text-shadow: 2px 2px 0 #000; margin: 2px 0; }
-#fable-stat { border-left: 4px solid var(--orange); padding-left: 8px; }
-#fable-stat .stat-val { color: var(--orange); }
-#models-list b { color: var(--ink); }
+#usage-bars { margin-top: 10px; overflow: hidden; }
+
+.ubar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.ubar-label { width: 118px; flex-shrink: 0; font-size: 7px; color: var(--dim); letter-spacing: 1px; }
+.ubar { flex: 1; display: flex; gap: 3px; height: 13px; }
+.ubar-seg { flex: 1; background: #33221733; border: 1px solid var(--panel-edge); }
+.ubar-val { width: 128px; flex-shrink: 0; text-align: right; font-size: 9px; color: var(--ink); text-shadow: 2px 2px 0 #000; }
+.ubar-val small { display: block; font-size: 6px; color: var(--dim); text-shadow: none; }
+
+.ubar-row .ubar-seg.on { background: var(--ink); border-color: var(--ink); box-shadow: inset -2px -2px 0 rgba(0,0,0,.35); }
+.ubar-row.fable .ubar-label, .ubar-row.fable .ubar-val { color: var(--orange); }
+.ubar-row.fable .ubar-seg.on { background: var(--orange); border-color: var(--orange); }
+.ubar-row.model .ubar-seg.on { background: var(--green); border-color: var(--green); }
+.ubar-row.model .ubar-val { color: var(--green); }
 
 /* ---------- eventos ---------- */
 #events-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 5px; }

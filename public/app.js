@@ -123,27 +123,52 @@
       bar.appendChild(seg);
     }
 
-    // hoy / semana / por modelo
-    const today = u.data.daily?.daily?.find((d) => d.period === todayPeriod());
-    $('today-cost').textContent = fmtCost(today?.totalCost);
-    $('today-tokens').textContent = today ? fmtTokens(today.totalTokens) + ' tok' : 'sin datos hoy';
+    // hoy / semana / por modelo: todo como barras segmentadas, con el $ al lado.
+    // Escalas: HOY vs el día más caro de la semana; SEMANA vs la mejor semana;
+    // modelos como proporción del gasto de hoy.
+    const days = u.data.daily?.daily || [];
+    const today = days.find((d) => d.period === todayPeriod());
+    const maxDaily = Math.max(...days.map((d) => d.totalCost), 0.01);
 
-    const weeks = u.data.weekly?.weekly;
-    const week = weeks && weeks[weeks.length - 1];
-    $('week-cost').textContent = fmtCost(week?.totalCost);
-    $('week-tokens').textContent = week ? fmtTokens(week.totalTokens) + ' tok' : '';
+    const weeks = u.data.weekly?.weekly || [];
+    const week = weeks[weeks.length - 1];
+    const maxWeekly = Math.max(...weeks.map((w) => w.totalCost), 0.01);
 
+    const rows = [
+      { label: 'HOY', cost: today?.totalCost, tok: today?.totalTokens, pct: (today?.totalCost || 0) / maxDaily, cls: '' },
+      { label: 'SEMANA', cost: week?.totalCost, tok: week?.totalTokens, pct: (week?.totalCost || 0) / maxWeekly, cls: '' },
+    ];
     const breakdowns = today?.modelBreakdowns || [];
     const fable = breakdowns.find((m) => /fable/i.test(m.modelName));
-    $('fable-cost').textContent = fmtCost(fable?.cost);
-    $('fable-tokens').textContent = fable
-      ? fmtTokens(fable.cacheCreationTokens + fable.cacheReadTokens + fable.inputTokens + fable.outputTokens) + ' tok'
-      : 'sin uso hoy';
+    rows.push({
+      label: 'FABLE 5 HOY',
+      cost: fable?.cost,
+      tok: fable ? fable.cacheCreationTokens + fable.cacheReadTokens + fable.inputTokens + fable.outputTokens : null,
+      pct: today?.totalCost ? (fable?.cost || 0) / today.totalCost : 0,
+      cls: 'fable',
+    });
+    for (const m of breakdowns.filter((b) => !/fable/i.test(b.modelName)).slice(0, 3)) {
+      rows.push({
+        label: modelLabel(m.modelName) + ' HOY',
+        cost: m.cost,
+        tok: m.cacheCreationTokens + m.cacheReadTokens + m.inputTokens + m.outputTokens,
+        pct: today?.totalCost ? m.cost / today.totalCost : 0,
+        cls: 'model',
+      });
+    }
 
-    const others = breakdowns.filter((m) => !/fable/i.test(m.modelName));
-    $('models-list').innerHTML = others.length
-      ? others.map((m) => `${modelLabel(m.modelName)} <b>${fmtCost(m.cost)}</b>`).join('<br>')
-      : 'solo Fable hoy';
+    const SEGS_U = 16;
+    const wrap = $('usage-bars');
+    wrap.innerHTML = '';
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'ubar-row' + (r.cls ? ' ' + r.cls : '');
+      const segsOn = Math.round(Math.min(1, Math.max(0, r.pct)) * SEGS_U);
+      row.innerHTML = `<div class="ubar-label">${r.label}</div>
+        <div class="ubar">${Array.from({ length: SEGS_U }, (_, i) => `<div class="ubar-seg${i < segsOn ? ' on' : ''}"></div>`).join('')}</div>
+        <div class="ubar-val">${fmtCost(r.cost)}<small>${r.tok != null ? fmtTokens(r.tok) + ' tok' : 'sin uso hoy'}</small></div>`;
+      wrap.appendChild(row);
+    }
   }
 
   // ---------------------------------------------------------------- aprobaciones
