@@ -7,7 +7,7 @@
   // Melodías: [frecuencia Hz, duración s, tipo de onda opcional]
   const TUNES = {
     start:    [[523, .09], [659, .09], [784, .09], [1047, .18]],            // arpegio ascendente C-E-G-C
-    done:     [[784, .1], [784, .08], [1047, .25]],                          // fanfarria corta
+    done:     [[1319, .12], [1568, .12], [2637, .12], [2093, .12], [2349, .12], [3136, .22]], // 1-UP estilo Mario
     end:      [[659, .12], [523, .12], [392, .2]],                           // despedida descendente
     notify:   [[988, .09], [0, .05], [988, .12]],                            // doble bip ámbar
     subagent: [[740, .08], [880, .12]],                                      // subagente termina: sube
