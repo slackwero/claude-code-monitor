@@ -129,8 +129,7 @@
       $('block-reset').textContent = 'SIN BLOQUE';
     }
     $('block-info').innerHTML = block
-      ? `<b>${fmtTokens(block.totalTokens)}</b> tok · <b>${fmtCost(block.costUSD)}</b>` +
-        (block.projection ? ` · proy ${fmtCost(block.projection.totalCost)}` : '')
+      ? `<b>${fmtTokens(block.totalTokens)}</b> tok`
       : 'sin actividad en el bloque actual';
     for (let i = 0; i < SEGS; i++) {
       const seg = document.createElement('div');
@@ -164,18 +163,17 @@
       rows.push({
         label: 'SEMANA TODOS',
         main: plan.weeklyAll.percent + '%',
-        sub: (week ? fmtCost(week.totalCost) + ' · ' : '') + fmtDay(plan.weeklyAll.resetsAt),
+        sub: fmtDay(plan.weeklyAll.resetsAt),
         pct: plan.weeklyAll.percent / 100,
         cls: '',
       });
     }
     for (const s of (plan?.scoped || [])) {
       const isFable = /fable/i.test(s.name);
-      const weekModel = week?.modelBreakdowns?.find((m) => new RegExp(s.name, 'i').test(m.modelName));
       rows.push({
         label: s.name.toUpperCase() + ' SEMANA',
         main: s.percent + '%',
-        sub: (weekModel ? fmtCost(weekModel.cost) + ' · ' : '') + fmtDay(s.resetsAt),
+        sub: fmtDay(s.resetsAt),
         pct: s.percent / 100,
         cls: isFable ? 'fable' : 'model',
       });
