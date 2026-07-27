@@ -12,5 +12,10 @@ if [ -z "$IP" ]; then
   exit 1
 fi
 
-echo "Casteando http://$IP:$PORT a \"$DEVICE\"..."
-catt -d "$DEVICE" cast_site "http://$IP:$PORT"
+# Si DashCast ya está activo con la misma URL, cast_site no recarga la página:
+# paramos primero y agregamos un cache-buster para forzar navegación fresca.
+catt -d "$DEVICE" stop >/dev/null 2>&1 || true
+sleep 2
+URL="http://$IP:$PORT/?v=$(date +%s)"
+echo "Casteando $URL a \"$DEVICE\"..."
+catt -d "$DEVICE" cast_site "$URL"
