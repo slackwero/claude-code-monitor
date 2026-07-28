@@ -19,7 +19,8 @@ requests by tapping the Hub's screen**.
   read from Claude Code's own OAuth token, plus cost estimates via
   [ccusage](https://github.com/ryoppippi/ccusage).
 - **8-bit chiptunes** — WebAudio-generated jingles for session start, task
-  done, waiting for input, approvals and errors. No audio files.
+  done, waiting for input, approvals and errors. No audio files. Press and
+  hold the logo for ~1s to play all 11 jingles in sequence (handy sound check).
 - **Zero dependencies** — native Node server, vanilla JS frontend, local font.
   Nothing leaves your LAN.
 
