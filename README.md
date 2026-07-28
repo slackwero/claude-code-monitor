@@ -55,6 +55,11 @@ Hooks apply to **new** Claude Code sessions; restart any open ones.
 On macOS, the first run will ask to allow incoming connections for `node` —
 accept it (the Hub needs to reach your machine over the LAN).
 
+**No cast device?** Skip the device step in the wizard and just open
+`http://localhost:8787` — or `http://<your-machine's-LAN-IP>:8787` from a
+phone or tablet on the same network. The full dashboard, including
+tap-to-approve, works in any browser; casting is entirely optional.
+
 ## CLI
 
 ```
