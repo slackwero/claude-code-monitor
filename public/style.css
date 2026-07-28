@@ -32,7 +32,7 @@ html, body {
   -webkit-user-select: none;
 }
 
-/* scanlines + viñeta CRT */
+/* CRT scanlines + vignette */
 #crt {
   position: fixed;
   inset: 0;
@@ -139,7 +139,7 @@ main {
 #usage-panel { flex: 0 0 auto; }
 #events-panel { flex: 1 1 0; display: flex; flex-direction: column; min-height: 0; }
 
-/* ---------- sesiones ---------- */
+/* ---------- sessions ---------- */
 #sessions-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
 
 .session-card {
@@ -185,7 +185,7 @@ main {
   line-height: 2.4;
 }
 
-/* ---------- consumos ---------- */
+/* ---------- usage ---------- */
 .usage-label { font-size: 9px; color: var(--dim); letter-spacing: 1px; margin-bottom: 4px; }
 .usage-sub { font-size: 9px; color: var(--dim); line-height: 1.8; }
 #usage-stale { color: var(--amber); float: right; }
@@ -222,7 +222,7 @@ main {
 .ubar-row.model .ubar-seg.on { background: var(--green); border-color: var(--green); }
 .ubar-row.model .ubar-val { color: var(--green); }
 
-/* ---------- eventos ---------- */
+/* ---------- events ---------- */
 #events-list { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 5px; }
 
 .evt {
@@ -242,7 +242,7 @@ main {
 .evt[data-type="PermissionRequest"] .evt-detail { color: var(--amber); }
 .evt[data-type="error"] .evt-detail { color: var(--red); }
 
-/* ---------- modal aprobación ---------- */
+/* ---------- approval modal ---------- */
 #approval-overlay {
   position: fixed;
   inset: 0;

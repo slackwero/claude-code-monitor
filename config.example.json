@@ -1,0 +1,6 @@
+{
+  "port": 8787,
+  "device": "YOUR CHROMECAST DEVICE NAME",
+  "usageRefreshSeconds": 60,
+  "approvalTimeoutSeconds": 28
+}

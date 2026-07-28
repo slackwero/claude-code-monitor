@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1024, initial-scale=1">
@@ -13,8 +13,8 @@
 <header id="header">
   <h1>CLAUDE<span>·</span>MONITOR</h1>
   <div id="header-right">
-    <button id="sound-chip" class="chip" hidden>&#128264; TOCA P/SONIDO</button>
-    <button id="mode-toggle" class="chip" data-on="false">REMOTO <b>OFF</b></button>
+    <button id="sound-chip" class="chip" hidden>&#128264; TAP FOR SOUND</button>
+    <button id="mode-toggle" class="chip" data-on="false">REMOTE <b>OFF</b></button>
     <div id="clock">--:--</div>
   </div>
 </header>
@@ -26,17 +26,17 @@
       <div id="mascot-status">zZz</div>
     </section>
     <section id="sessions-panel" class="panel">
-      <h2>SESIONES</h2>
+      <h2>SESSIONS</h2>
       <div id="sessions-list"></div>
-      <div id="sessions-empty" class="empty">SIN SESIONES<br>&#9608; zZz</div>
+      <div id="sessions-empty" class="empty">NO SESSIONS<br>&#9608; zZz</div>
     </section>
   </div>
 
   <div id="right-col">
     <section id="usage-panel" class="panel">
-      <h2>CONSUMOS <span id="usage-stale" hidden>&#9888; STALE</span></h2>
+      <h2>USAGE <span id="usage-stale" hidden>&#9888; STALE</span></h2>
       <div id="block-row">
-        <div class="usage-label">BLOQUE 5H <span id="block-reset"></span></div>
+        <div class="usage-label">BLOCK 5H <span id="block-reset"></span></div>
         <div id="block-bar"></div>
         <div id="block-info" class="usage-sub"></div>
       </div>
@@ -44,7 +44,7 @@
     </section>
 
     <section id="events-panel" class="panel">
-      <h2>EVENTOS</h2>
+      <h2>EVENTS</h2>
       <div id="events-list"></div>
     </section>
   </div>
@@ -52,14 +52,14 @@
 
 <div id="approval-overlay" hidden>
   <div id="approval-card">
-    <h2>&#9888; APROBACION</h2>
+    <h2>&#9888; APPROVAL</h2>
     <div id="approval-project" class="usage-label"></div>
     <div id="approval-tool"></div>
     <pre id="approval-input"></pre>
     <div id="approval-countdown"><div id="approval-countdown-fill"></div></div>
     <div id="approval-buttons">
-      <button id="btn-deny">DENEGAR</button>
-      <button id="btn-allow">APROBAR</button>
+      <button id="btn-deny">DENY</button>
+      <button id="btn-allow">APPROVE</button>
     </div>
   </div>
 </div>

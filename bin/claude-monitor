@@ -1,48 +1,60 @@
 #!/bin/sh
-# CLI del Nest Hub Monitor. Instalado como symlink en ~/.local/bin/claude-monitor.
+# claude-code-monitor CLI. Installed as a symlink at ~/.local/bin/claude-monitor.
 set -e
 
 SELF="$0"
 [ -L "$SELF" ] && SELF="$(readlink "$SELF")"
 DIR="$(cd "$(dirname "$SELF")/.." && pwd)"
 PATH="$HOME/.local/bin:$PATH"
-LOGS="$HOME/Library/Logs/nest-hub-monitor"
-PORT="$(node -p "require('$DIR/config.json').port" 2>/dev/null || echo 8787)"
-DEVICE="${CATT_DEVICE:-$(node -p "require('$DIR/config.json').device" 2>/dev/null)}"
+
+OS="$(uname -s)"
+if [ "$OS" = "Darwin" ]; then
+  LOGS="$HOME/Library/Logs/claude-code-monitor"
+else
+  LOGS="${XDG_STATE_HOME:-$HOME/.local/state}/claude-code-monitor"
+fi
+
+CONF="$DIR/config.json"; [ -f "$CONF" ] || CONF="$DIR/config.example.json"
+PORT="$(node -p "require('$CONF').port" 2>/dev/null || echo 8787)"
+DEVICE="${CATT_DEVICE:-$(node -p "require('$CONF').device" 2>/dev/null)}"
 
 case "$1" in
   start)
     sh "$DIR/scripts/install-autostart.sh"
-    # el servidor recién cargado por launchd puede tardar un instante en escuchar
+    # the server just loaded by launchd/systemd may take a moment to start listening
     for _ in 1 2 3 4 5 6 7 8 9 10; do
       curl -s -o /dev/null --connect-timeout 1 "http://127.0.0.1:$PORT/" && break
       sleep 1
     done
     sh "$DIR/scripts/cast.sh"
-    echo "Monitor arriba. Sobrevive reinicios de la Mac (launchd)."
+    echo "Monitor up. Survives reboots (autostart installed)."
     ;;
   stop)
     sh "$DIR/scripts/install-autostart.sh" --uninstall
     catt -d "$DEVICE" stop >/dev/null 2>&1 || true
-    echo "Monitor detenido (servidor + keepalive + cast)."
+    echo "Monitor stopped (server + keepalive + cast)."
     ;;
   restart)
     sh "$DIR/scripts/install-autostart.sh"
     ;;
   status)
-    printf "servidor    : "
-    if curl -s -o /dev/null --connect-timeout 2 "http://127.0.0.1:$PORT/"; then echo "OK (:$PORT)"; else echo "CAIDO"; fi
-    printf "launchd     : "
-    launchctl list 2>/dev/null | grep -q com.nest-hub-monitor.server && echo "instalado" || echo "no instalado (usa: claude-monitor start)"
-    printf "hub (%s): " "$DEVICE"
+    printf "server   : "
+    if curl -s -o /dev/null --connect-timeout 2 "http://127.0.0.1:$PORT/"; then echo "OK (:$PORT)"; else echo "DOWN"; fi
+    printf "services : "
+    if [ "$OS" = "Darwin" ]; then
+      launchctl list 2>/dev/null | grep -q com.claude-code-monitor.server && echo "installed" || echo "not installed (run: claude-monitor start)"
+    else
+      systemctl --user is-active --quiet claude-code-monitor-server.service && echo "active" || echo "not installed (run: claude-monitor start)"
+    fi
+    printf "device (%s): " "$DEVICE"
     APP="$(catt -d "$DEVICE" info 2>/dev/null | sed -n 's/^app_id: //p')"
-    if [ "$APP" = "84912283" ]; then echo "mostrando dashboard"; elif [ -n "$APP" ]; then echo "en otra app ($APP)"; else echo "no responde"; fi
+    if [ "$APP" = "84912283" ]; then echo "showing dashboard"; elif [ -n "$APP" ]; then echo "on another app ($APP)"; else echo "not responding"; fi
     ;;
   cast)
     sh "$DIR/scripts/cast.sh"
     ;;
   logs)
-    tail -n 40 -f "$LOGS"/com.nest-hub-monitor.*.log
+    tail -n 40 -f "$LOGS"/*.log
     ;;
   hooks)
     node "$DIR/hooks/install-hooks.js"
@@ -52,17 +64,17 @@ case "$1" in
     ;;
   *)
     cat <<EOF
-claude-monitor — dashboard de Claude Code en el Nest Hub
+claude-monitor — Claude Code dashboard for your Nest Hub
 
-  claude-monitor start      levanta todo (servidor + keepalive), castea al Hub
-                            y lo deja instalado para arrancar solo al iniciar sesión
-  claude-monitor stop       detiene, desinstala el autostart y cierra el cast del Hub
-  claude-monitor restart    relanza los servicios
-  claude-monitor status     servidor, launchd y estado del Hub
-  claude-monitor cast       fuerza un re-cast al Hub ahora
-  claude-monitor logs       sigue los logs en vivo (Ctrl-C para salir)
-  claude-monitor hooks      (re)instala los hooks de Claude Code
-  claude-monitor hooks-off  quita los hooks
+  claude-monitor start      bring everything up (server + keepalive), cast to the Hub
+                            and leave it auto-starting on login
+  claude-monitor stop       stop it, remove the autostart and close the Hub cast
+  claude-monitor restart    relaunch the services
+  claude-monitor status     server, services and Hub status
+  claude-monitor cast       force a re-cast to the Hub now
+  claude-monitor logs       follow the live logs (Ctrl-C to exit)
+  claude-monitor hooks      (re)install the Claude Code hooks
+  claude-monitor hooks-off  remove the hooks
 EOF
     ;;
 esac

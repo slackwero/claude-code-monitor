@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Instala (o desinstala con --uninstall) los hooks del dashboard en
-// ~/.claude/settings.json con merge ADITIVO: nunca toca hooks ajenos.
-// Override para pruebas: CLAUDE_SETTINGS=/ruta/a/settings.json
+// Installs (or uninstalls with --uninstall) the dashboard hooks into
+// ~/.claude/settings.json with an ADDITIVE merge: never touches other tools' hooks.
+// Override for testing: CLAUDE_SETTINGS=/path/to/settings.json
 'use strict';
 
 const fs = require('fs');
@@ -22,17 +22,28 @@ function isOurs(hook) {
 }
 
 function main() {
-  const raw = fs.readFileSync(SETTINGS, 'utf8');
+  let existed = true;
+  let raw = '{}';
+  try {
+    raw = fs.readFileSync(SETTINGS, 'utf8');
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+    existed = false;
+    fs.mkdirSync(path.dirname(SETTINGS), { recursive: true });
+  }
   const settings = JSON.parse(raw);
   settings.hooks = settings.hooks || {};
 
-  // backup con timestamp antes de tocar nada
-  const backup = `${SETTINGS}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
-  fs.copyFileSync(SETTINGS, backup);
+  // timestamped backup before touching anything, only if the file already existed
+  let backup;
+  if (existed) {
+    backup = `${SETTINGS}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+    fs.copyFileSync(SETTINGS, backup);
+  }
 
   let changes = 0;
 
-  // limpiar nuestras entradas (para uninstall y para idempotencia del install)
+  // clear our own entries (for uninstall and for install idempotency)
   for (const [event, groups] of Object.entries(settings.hooks)) {
     if (!Array.isArray(groups)) continue;
     for (const g of groups) {
@@ -59,9 +70,9 @@ function main() {
   }
 
   fs.writeFileSync(SETTINGS, JSON.stringify(settings, null, 2) + '\n');
-  console.log(`${UNINSTALL ? 'Desinstalado' : 'Instalado'} en ${SETTINGS}`);
-  console.log(`Backup: ${backup}`);
-  console.log('Los hooks aplican a sesiones de Claude Code NUEVAS (las abiertas no los recargan).');
+  console.log(`${UNINSTALL ? 'Uninstalled from' : 'Installed into'} ${SETTINGS}`);
+  if (existed) console.log(`Backup: ${backup}`);
+  console.log('Hooks apply to NEW Claude Code sessions (already-open ones do not reload them).');
 }
 
 try {
