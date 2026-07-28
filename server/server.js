@@ -72,7 +72,7 @@ function snapshot() {
   };
 }
 
-// ---------------------------------------------------------------- sesiones y eventos
+// ---------------------------------------------------------------- sessions and events
 function projectName(cwd) {
   if (!cwd) return '???';
   return path.basename(cwd) || cwd;
