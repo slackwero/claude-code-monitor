@@ -6,10 +6,17 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const os = require('os');
 const { execFile } = require('child_process');
 
 const ROOT = path.join(__dirname, '..');
-const CONFIG = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.json'), 'utf8'));
+function loadConfig() {
+  for (const name of ['config.json', 'config.example.json']) {
+    try { return JSON.parse(fs.readFileSync(path.join(ROOT, name), 'utf8')); } catch (_) {}
+  }
+  return {};
+}
+const CONFIG = loadConfig();
 const PORT = process.env.PORT || CONFIG.port || 8787;
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const APPROVAL_TIMEOUT_MS = (CONFIG.approvalTimeoutSeconds || 28) * 1000;
@@ -18,21 +25,21 @@ const SESSION_ZOMBIE_TTL_MS = 30 * 60 * 1000;
 const SESSION_ENDED_PURGE_MS = 5 * 60 * 1000;
 const EVENT_LOG_MAX = 50;
 
-// ---------------------------------------------------------------- estado
+// ---------------------------------------------------------------- state
 const sessions = new Map();      // session_id -> {cwd, project, status, lastEvent, lastSeen, startedAt}
-const eventLog = [];             // ring buffer de eventos normalizados
+const eventLog = [];             // ring buffer of normalized events
 const pendingApprovals = new Map(); // id -> {payload, res, timer}
 const sseClients = new Set();
 let remoteMode = false;
 let usageCache = { data: null, fetchedAt: null, stale: true, error: null };
 
-// Persistencia de la cache de consumos: el último dato bueno sobrevive reinicios
-// y se muestra como stale mientras llega el primer refresh real.
+// Usage cache persistence: the last good data survives restarts
+// and is shown as stale until the first real refresh arrives.
 const USAGE_CACHE_FILE = path.join(ROOT, '.usage-cache.json');
 try {
   const saved = JSON.parse(fs.readFileSync(USAGE_CACHE_FILE, 'utf8'));
   if (saved && saved.data) usageCache = { ...saved, stale: true, error: null };
-} catch (_) { /* sin cache previa o corrupta: se parte de cero */ }
+} catch (_) { /* no previous cache or corrupted: start from scratch */ }
 
 function persistUsageCache() {
   fs.writeFile(USAGE_CACHE_FILE, JSON.stringify(usageCache), (_) => { /* fail-open */ });
@@ -71,7 +78,7 @@ function projectName(cwd) {
   return path.basename(cwd) || cwd;
 }
 
-// Notification cubre permisos e idle; solo el de permiso cambia el estado a waiting
+// Notification covers permissions and idle; only the permission one changes status to waiting
 function isPermissionNotification(payload) {
   const msg = (payload.message || '') + (payload.notification_type || '');
   return /permission|approval|waiting for your input|needs your/i.test(msg);
@@ -95,37 +102,37 @@ function handleHookEvent(payload) {
   switch (type) {
     case 'SessionStart':
       s.status = 'working';
-      detail = 'Sesión iniciada';
+      detail = 'Session started';
       break;
     case 'SessionEnd':
       s.status = 'ended';
-      detail = 'Sesión terminada';
+      detail = 'Session ended';
       setTimeout(() => { if (sessions.get(id)?.status === 'ended') { sessions.delete(id); broadcast('hook', { sessions: snapshot().sessions }); } }, SESSION_ENDED_PURGE_MS);
       break;
     case 'Notification':
-      detail = payload.message || 'Notificación';
+      detail = payload.message || 'Notification';
       if (isPermissionNotification(payload)) s.status = 'waiting';
       break;
     case 'Stop':
       s.status = 'idle';
-      detail = 'Tarea terminada';
+      detail = 'Task finished';
       break;
     case 'SubagentStop':
-      detail = 'Subagente terminado';
+      detail = 'Subagent finished';
       break;
     case 'SubagentStart':
-      detail = 'Subagente iniciado';
+      detail = 'Subagent started';
       break;
     case 'PermissionRequest':
       s.status = 'waiting';
-      detail = payload.tool_name ? `Permiso: ${payload.tool_name}` : 'Esperando permiso';
+      detail = payload.tool_name ? `Permission: ${payload.tool_name}` : 'Waiting for permission';
       break;
     case 'PreCompact':
-      detail = 'Compactando contexto';
+      detail = 'Compacting context';
       break;
     case 'UserPromptSubmit':
       s.status = 'working';
-      detail = 'Nueva solicitud';
+      detail = 'New prompt';
       break;
     default:
       detail = type;
@@ -138,7 +145,7 @@ function handleHookEvent(payload) {
   broadcast('hook', { event: evt, sessions: snapshot().sessions });
 }
 
-// TTL para sesiones zombi (crash sin SessionEnd)
+// TTL for zombie sessions (crash without SessionEnd)
 setInterval(() => {
   const now = Date.now();
   let changed = false;
@@ -148,7 +155,7 @@ setInterval(() => {
   if (changed) broadcast('hook', { sessions: snapshot().sessions });
 }, 60000);
 
-// ---------------------------------------------------------------- aprobaciones
+// ---------------------------------------------------------------- approvals
 function requestApproval(payload, res) {
   if (!remoteMode) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -191,7 +198,7 @@ function decideApproval(id, decision) {
         hookSpecificOutput: {
           hookEventName: 'PreToolUse',
           permissionDecision: decision,
-          permissionDecisionReason: decision === 'allow' ? 'Aprobado desde Nest Hub' : 'Denegado desde Nest Hub',
+          permissionDecisionReason: decision === 'allow' ? 'Approved from the Hub' : 'Denied from the Hub',
         },
       })
     : '{"decision":"none"}';
@@ -210,13 +217,22 @@ function runCcusage(args) {
   });
 }
 
-// Límites reales del plan (los mismos % que muestra /usage y la app de Claude):
-// token OAuth desde el Keychain -> GET /api/oauth/usage. Solo en memoria, jamás se loguea.
+// Real plan limits (same percentages /usage shows): OAuth token -> GET /api/oauth/usage.
+// macOS stores Claude Code credentials in the Keychain; Linux in a plain JSON file.
+// The token lives only in this process's memory and is never logged.
 function getOauthToken() {
+  if (process.platform === 'darwin') {
+    return new Promise((resolve) => {
+      execFile('security', ['find-generic-password', '-s', 'Claude Code-credentials', '-w'], { timeout: 10000 }, (err, stdout) => {
+        if (err) return resolve(null);
+        try { resolve(JSON.parse(stdout).claudeAiOauth.accessToken || null); } catch (_) { resolve(null); }
+      });
+    });
+  }
   return new Promise((resolve) => {
-    execFile('security', ['find-generic-password', '-s', 'Claude Code-credentials', '-w'], { timeout: 10000 }, (err, stdout) => {
+    fs.readFile(path.join(os.homedir(), '.claude', '.credentials.json'), 'utf8', (err, data) => {
       if (err) return resolve(null);
-      try { resolve(JSON.parse(stdout).claudeAiOauth.accessToken || null); } catch (_) { resolve(null); }
+      try { resolve(JSON.parse(data).claudeAiOauth.accessToken || null); } catch (_) { resolve(null); }
     });
   });
 }
@@ -238,14 +254,14 @@ function fetchPlanUsage() {
       res.on('end', () => {
         try {
           const j = JSON.parse(data);
-          // respuesta de error (p.ej. rate_limit_error) o sin límites: tratar como
-          // fallo para no pisar el último plan bueno de la cache con un plan vacío
+          // error response (e.g. rate_limit_error) or no limits: treat as
+          // failure so an empty plan doesn't overwrite the last good plan in the cache
           if (!Array.isArray(j.limits) || !j.limits.length) return resolve(null);
           const limits = j.limits;
           const session = limits.find((l) => l.kind === 'session');
           const weeklyAll = limits.find((l) => l.kind === 'weekly_all');
           const scoped = limits.filter((l) => l.kind === 'weekly_scoped').map((l) => ({
-            name: l.scope?.model?.display_name || 'modelo',
+            name: l.scope?.model?.display_name || 'model',
             percent: l.percent,
             resetsAt: l.resets_at,
           }));
@@ -287,7 +303,7 @@ async function refreshUsage() {
       };
       persistUsageCache();
     } else {
-      usageCache = { ...usageCache, stale: true, error: 'sin datos de uso' };
+      usageCache = { ...usageCache, stale: true, error: 'no usage data' };
     }
     broadcast('usage', usageCache);
   } finally {
@@ -372,7 +388,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       try { remoteMode = !!JSON.parse(body).remoteMode; } catch (_) {}
       broadcast('mode', { remoteMode });
-      // al apagar el modo remoto, liberar aprobaciones pendientes al flujo normal
+      // when turning off remote mode, release pending approvals back to the normal flow
       if (!remoteMode) for (const id of [...pendingApprovals.keys()]) decideApproval(id, 'none');
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -386,7 +402,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // estáticos
+  // static files
   let file = p === '/' ? '/index.html' : p;
   file = path.normalize(file).replace(/^(\.\.[/\\])+/, '');
   const full = path.join(PUBLIC_DIR, file);
@@ -399,5 +415,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`nest-hub-monitor escuchando en http://0.0.0.0:${PORT}`);
+  console.log(`claude-code-monitor listening on http://0.0.0.0:${PORT}`);
 });
