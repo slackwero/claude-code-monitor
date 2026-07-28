@@ -1,6 +1,7 @@
 node_modules/
 CLAUDE.md
 .claude/
+config.json
 *.png
 nohup.out
 .usage-cache.json
