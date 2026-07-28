@@ -112,19 +112,27 @@ async function main() {
   }
 
   // 6. Autostart + cast
+  let autostarted = false;
   const auto = await ask('\nStart on login and keep alive (autostart)? [Y/n] ');
   if (!/^n/i.test(auto)) {
     const r = sh('sh', [path.join(ROOT, 'scripts', 'install-autostart.sh')], { stdio: 'inherit' });
     if (r.status !== 0) warn('Autostart installation failed — you can retry later with: npm run autostart');
+    else autostarted = true;
   } else {
     console.log('  You can start it manually with: npm start');
   }
   if (config.device && hasCatt) {
-    const serverUp = await new Promise((resolve) => {
+    const probe = () => new Promise((resolve) => {
       const rq = http.get({ host: '127.0.0.1', port: config.port, timeout: 1500 }, (res) => { res.resume(); resolve(true); });
       rq.on('error', () => resolve(false));
       rq.on('timeout', () => { rq.destroy(); resolve(false); });
     });
+    // freshly-installed autostart needs a moment to bind the port
+    let serverUp = await probe();
+    for (let i = 0; !serverUp && autostarted && i < 10; i++) {
+      await new Promise((r) => setTimeout(r, 500));
+      serverUp = await probe();
+    }
     if (serverUp) {
       const cast = await ask('Cast to the device now? [Y/n] ');
       if (!/^n/i.test(cast)) sh('sh', [path.join(ROOT, 'scripts', 'cast.sh')], { stdio: 'inherit' });
