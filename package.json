@@ -1,9 +1,18 @@
 {
-  "name": "nest-hub-monitor",
+  "name": "claude-code-monitor",
   "version": "1.0.0",
-  "description": "Dashboard pixel-art de monitoreo de Claude Code para Google Nest Hub 2da gen",
+  "description": "Pixel-art kiosk dashboard that monitors your Claude Code sessions and casts to a Google Nest Hub — with remote touch approval",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slackwero/claude-code-monitor.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "setup": "node scripts/setup.js",
     "start": "node server/server.js",
     "install-hooks": "node hooks/install-hooks.js",
     "uninstall-hooks": "node hooks/install-hooks.js --uninstall",
