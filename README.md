@@ -1,84 +1,118 @@
-# Nest Hub Monitor
+# claude-code-monitor
 
-Dashboard pixel-art de monitoreo de Claude Code, pensado para castearse a un
-Google Nest Hub 2ª gen (viewport 1024×600, touch). Muestra en tiempo real las
-sesiones activas de la Mac, los eventos importantes (con chiptunes 8-bit), el
-consumo de la suscripción vía ccusage, y permite **aprobar/denegar permisos
-tocando la pantalla del Hub**.
+A pixel-art kiosk dashboard that monitors your **Claude Code** sessions in real
+time — designed to be cast to a **Google Nest Hub** (2nd gen) so you can watch
+your agents work, hear 8-bit chiptune alerts, and **approve or deny permission
+requests by tapping the Hub's screen**.
 
-## Requisitos
+![Dashboard](.github/screenshot.png)
 
-- Node.js (sin dependencias npm; el servidor es HTTP nativo)
-- [catt](https://github.com/skorokithakis/catt) para castear: `pipx install catt` (o `pip install catt`)
-- ccusage se ejecuta solo vía `npx` (no hay que instalarlo)
+## Features
 
-## Uso rápido (CLI)
+- **Live session board** — every Claude Code session on your machine, its
+  project, status (working / waiting / ready) and latest event, streamed over SSE.
+- **Remote touch approval** — flip the REMOTE toggle and Bash/Write/Edit
+  permission requests appear as cards on the Hub with APPROVE / DENY buttons
+  and a 28s countdown. Fail-open by design: if you don't answer (or the server
+  is down), Claude Code falls back to its normal terminal prompt. Never blocks.
+- **Plan usage bars** — the same percentages `/usage` shows (5h block, weekly),
+  read from Claude Code's own OAuth token, plus cost estimates via
+  [ccusage](https://github.com/ryoppippi/ccusage).
+- **8-bit chiptunes** — WebAudio-generated jingles for session start, task
+  done, waiting for input, approvals and errors. No audio files.
+- **Zero dependencies** — native Node server, vanilla JS frontend, local font.
+  Nothing leaves your LAN.
 
-`bin/claude-monitor` está symlinkeado en `~/.local/bin`:
+![Remote approval card](.github/approval.png)
+
+## Requirements
+
+| | macOS | Linux |
+|---|---|---|
+| [Node.js](https://nodejs.org) ≥ 18 | ✓ | ✓ |
+| [Claude Code](https://claude.com/claude-code) | ✓ | ✓ |
+| [catt](https://github.com/skorokithakis/catt) (only for casting) | `pipx install catt` | `pipx install catt` |
+| Autostart | launchd | systemd (user units) |
+
+Any 1024×600-capable browser works if you don't have a Nest Hub — casting is
+optional.
+
+## Install
 
 ```sh
-claude-monitor start      # levanta todo y lo deja auto-arrancando al iniciar sesión (launchd)
-claude-monitor status     # servidor, launchd y estado del Hub
-claude-monitor stop       # detiene y desinstala el autostart
-claude-monitor cast       # fuerza un re-cast ahora
-claude-monitor logs       # sigue los logs en vivo
-claude-monitor hooks      # (re)instala los hooks de Claude Code
+git clone https://github.com/slackwero/claude-code-monitor.git
+cd claude-code-monitor
+npm run setup
 ```
 
-El autostart usa dos LaunchAgents (`com.nest-hub-monitor.server` y `.keepalive`)
-con `KeepAlive`: se relanzan si mueren y sobreviven reinicios de la Mac. Logs en
-`~/Library/Logs/nest-hub-monitor/`. Nota: el keepalive corre en Node (no sh)
-porque TCC de macOS no deja a `/bin/sh` leer `~/Documents` bajo launchd.
+The wizard checks prerequisites, scans your network for cast devices, writes
+`config.json`, installs the Claude Code hooks (additive — your existing hooks
+are preserved, with a timestamped backup), links the `claude-monitor` CLI into
+`~/.local/bin`, and optionally sets up autostart and casts right away.
 
-## Scripts npm equivalentes
+Hooks apply to **new** Claude Code sessions; restart any open ones.
+On macOS, the first run will ask to allow incoming connections for `node` —
+accept it (the Hub needs to reach your machine over the LAN).
+
+## CLI
+
+```
+claude-monitor start      install autostart, start everything, cast
+claude-monitor stop       stop services, remove autostart, stop the cast
+claude-monitor restart    relaunch the services
+claude-monitor status     server + services + device state
+claude-monitor cast       force a re-cast now
+claude-monitor logs       follow logs live
+claude-monitor hooks      (re)install the Claude Code hooks
+claude-monitor hooks-off  remove the hooks
+```
+
+## How it works
+
+```
+Claude Code ──hooks──▶ forward-event.sh ──POST /hook──▶ ┌────────────────┐
+    │                                                    │  Node server   │──SSE──▶ browser / Nest Hub
+    └─PreToolUse──▶ approval-gate.sh ──long-poll──▶      │  (in-memory)   │◀─tap── APPROVE / DENY
+                                                         └────────────────┘
+```
+
+Claude Code hooks (registered in `~/.claude/settings.json`) forward their JSON
+to the local server, which keeps all state in memory and pushes deltas over
+SSE. The approval gate long-polls `POST /approval/request`; a tap on the Hub
+resolves it with a `permissionDecision`. Timeouts are chained (server 28s <
+curl 32s < hook 40s) so the terminal prompt always wins over a dead server.
+
+## Privacy & data
+
+- Everything runs on `localhost` / your LAN. No telemetry, no external services.
+- The plan-usage bars read Claude Code's OAuth token (macOS Keychain / Linux
+  `~/.claude/.credentials.json`) to call `api.anthropic.com/api/oauth/usage` —
+  the same endpoint `/usage` uses. The token lives only in server memory and is
+  never logged or persisted.
+- Cost estimates run via `npx ccusage` against your local Claude logs.
+
+## Troubleshooting
+
+- **Hub shows the dashboard but no sound** — cast receivers block autoplay:
+  tap the "TAP FOR SOUND" chip once.
+- **Hooks don't fire** — they only load in sessions started after install.
+- **macOS: services die under launchd with EPERM on `~/Documents`** — macOS
+  TCC restricts launchd access to Documents; clone the repo somewhere like
+  `~/claude-code-monitor` instead, or grant access in System Settings.
+- **Linux: services stop at logout** — run `loginctl enable-linger $USER`.
+- **Cast drops after ~10 min** — that's the Hub returning to ambient mode; the
+  keepalive service re-casts automatically within a minute.
+- **No % bars, only $ estimates** — OAuth token not readable (no Keychain
+  entry / credentials file); the dashboard falls back to ccusage estimates.
+
+## Uninstall
 
 ```sh
-npm run install-hooks   # registra los hooks en ~/.claude/settings.json (merge aditivo + backup)
-npm start               # servidor en http://0.0.0.0:8787 (foreground)
-npm run cast            # castea al Nest Hub (usa la IP LAN de la Mac)
-npm run keepalive       # re-castea si el Hub vuelve a su pantalla ambiente (~10 min)
-npm run autostart       # = claude-monitor start
-npm run autostart-off   # = claude-monitor stop
+claude-monitor stop        # services + autostart + cast
+npm run uninstall-hooks    # removes only our hook entries
+rm ~/.local/bin/claude-monitor
 ```
 
-- El nombre del dispositivo se configura en `config.json` (`device`) o con `CATT_DEVICE`; descúbrelo con `catt scan`.
-- Los hooks aplican a sesiones de Claude Code **nuevas**; las ya abiertas no los recargan.
-- `npm run uninstall-hooks` quita solo nuestras entradas y deja el resto intacto.
-- La primera vez, macOS pedirá permitir conexiones entrantes para `node`: acepta (el Hub debe alcanzar la Mac).
+## License
 
-## Aprobación remota
-
-El toggle **REMOTO** del dashboard controla el flujo:
-
-- **OFF** (default): los hooks responden en milisegundos y todo funciona como siempre (prompt en terminal).
-- **ON**: cuando una sesión pide usar Bash/Write/Edit, aparece una tarjeta en el
-  Hub con botones APROBAR/DENEGAR y una cuenta regresiva de 28s. Si no respondes,
-  la solicitud cae al prompt normal de la terminal — nunca queda bloqueada.
-- Si el servidor está caído, los hooks son fail-open: Claude Code ni se entera.
-
-## Sonidos
-
-Chiptunes generados con WebAudio (sin archivos): arpegio al iniciar sesión,
-fanfarria al terminar una tarea, doble bip al pedir input, alerta insistente en
-aprobaciones, descendente grave en errores. Si el receiver bloquea el autoplay,
-aparece el chip "TOCA P/SONIDO": un toque en la pantalla lo desbloquea.
-Mantén presionado el logo ~1s para probar todos los jingles.
-
-## Fuentes de datos de consumo
-
-- **% de los límites del plan** (bloque 5h, semanal todos, semanal Fable): el
-  endpoint OAuth `api.anthropic.com/api/oauth/usage` — los mismos números que
-  muestra `/usage` en Claude Code. El token se lee del Keychain
-  (`security find-generic-password -s "Claude Code-credentials"`) en runtime,
-  solo vive en memoria del servidor y nunca se loguea. Si el Keychain no está
-  disponible, las barras caen al fallback de estimaciones ccusage.
-- **Dólares y tokens**: estimaciones locales de ccusage (equivalente costo API),
-  mostradas junto a cada barra.
-
-## Limitaciones conocidas
-- El desglose por proyecto no está disponible en el ccusage actual (sus
-  sesiones son UUIDs sin ruta), por eso el panel no lo incluye.
-- La tarjeta de aprobación muestra el comando original, antes de la reescritura
-  de rtk (los hooks PreToolUse corren en paralelo).
-- El estado del servidor vive en memoria: al reiniciarlo se pierde el historial
-  de eventos (las sesiones reaparecen con su siguiente evento).
+[MIT](LICENSE) © 2026 Alexander Valera (slackwero)
