@@ -5,6 +5,7 @@
 'use strict';
 
 const fs = require('fs');
+const http = require('http');
 const os = require('os');
 const path = require('path');
 const readline = require('readline');
@@ -46,7 +47,12 @@ async function main() {
 
   // 2. Cast device
   let device = null;
-  const existing = fs.existsSync(CONFIG_PATH) ? JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')) : null;
+  let browserOnly = false;
+  let existing = null;
+  if (fs.existsSync(CONFIG_PATH)) {
+    try { existing = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); }
+    catch (_) { warn(`${CONFIG_PATH} is not valid JSON — it will be rewritten`); }
+  }
   if (existing && existing.device && existing.device !== 'YOUR CHROMECAST DEVICE NAME') {
     const keep = await ask(`Keep current device "${existing.device}"? [Y/n] `);
     if (!/^n/i.test(keep)) device = existing.device;
@@ -55,22 +61,30 @@ async function main() {
     console.log('\nScanning your network for cast devices (~10s)...');
     const scan = sh('catt', ['scan'], { timeout: 30000 });
     const devices = (scan.stdout || '').split('\n')
-      .map((l) => l.split(' - ')[1]).filter(Boolean);
+      .map((l) => l.split(' - ').slice(1).join(' - ')).filter(Boolean);
     if (devices.length) {
       devices.forEach((d, i) => console.log(`  ${i + 1}. ${d}`));
       console.log('  0. Skip (browser-only, no casting)');
       const n = Number(await ask('Pick a device number: '));
       if (n >= 1 && n <= devices.length) device = devices[n - 1];
+      else browserOnly = true;
     } else {
       warn('No cast devices found (same network? try again later with: npm run setup)');
     }
   }
+  if (!device && !browserOnly && existing && existing.device) {
+    warn(`keeping previous device "${existing.device}"`);
+  }
 
   // 3. Write config.json
   const example = JSON.parse(fs.readFileSync(path.join(ROOT, 'config.example.json'), 'utf8'));
-  const config = { ...example, ...(existing || {}), device: device || (existing && existing.device) || example.device };
+  const config = {
+    ...example,
+    ...(existing || {}),
+    device: browserOnly ? null : (device || (existing && existing.device) || example.device),
+  };
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2) + '\n');
-  ok(`config.json written (port ${config.port}, device: ${device || 'none — browser-only'})`);
+  ok(`config.json written (port ${config.port}, device: ${config.device || 'none — browser-only'})`);
 
   // 4. Hooks
   const hooks = await ask('\nInstall Claude Code hooks (required for monitoring)? [Y/n] ');
@@ -83,24 +97,40 @@ async function main() {
   const cliSrc = path.join(ROOT, 'bin', 'claude-monitor');
   const cliDst = path.join(LOCAL_BIN, 'claude-monitor');
   fs.mkdirSync(LOCAL_BIN, { recursive: true });
-  try { fs.unlinkSync(cliDst); } catch (_) {}
-  fs.symlinkSync(cliSrc, cliDst);
-  ok(`CLI installed: ${cliDst}`);
-  if (!(process.env.PATH || '').split(':').includes(LOCAL_BIN)) {
-    warn(`${LOCAL_BIN} is not on your PATH — add:  export PATH="$HOME/.local/bin:$PATH"`);
+  let skipCli = false;
+  try {
+    const st = fs.lstatSync(cliDst);
+    if (st.isDirectory()) { warn(`${cliDst} is a directory — skipping CLI install`); skipCli = true; }
+    else fs.unlinkSync(cliDst);
+  } catch (_) { /* nothing there */ }
+  if (!skipCli) {
+    fs.symlinkSync(cliSrc, cliDst);
+    ok(`CLI installed: ${cliDst}`);
+    if (!(process.env.PATH || '').split(':').includes(LOCAL_BIN)) {
+      warn(`${LOCAL_BIN} is not on your PATH — add:  export PATH="$HOME/.local/bin:$PATH"`);
+    }
   }
 
   // 6. Autostart + cast
   const auto = await ask('\nStart on login and keep alive (autostart)? [Y/n] ');
   if (!/^n/i.test(auto)) {
     const r = sh('sh', [path.join(ROOT, 'scripts', 'install-autostart.sh')], { stdio: 'inherit' });
-    if (r.status !== 0) fail('Autostart installation failed');
+    if (r.status !== 0) warn('Autostart installation failed — you can retry later with: npm run autostart');
   } else {
     console.log('  You can start it manually with: npm start');
   }
-  if (device && hasCatt) {
-    const cast = await ask('Cast to the device now? [Y/n] ');
-    if (!/^n/i.test(cast)) sh('sh', [path.join(ROOT, 'scripts', 'cast.sh')], { stdio: 'inherit' });
+  if (config.device && hasCatt) {
+    const serverUp = await new Promise((resolve) => {
+      const rq = http.get({ host: '127.0.0.1', port: config.port, timeout: 1500 }, (res) => { res.resume(); resolve(true); });
+      rq.on('error', () => resolve(false));
+      rq.on('timeout', () => { rq.destroy(); resolve(false); });
+    });
+    if (serverUp) {
+      const cast = await ask('Cast to the device now? [Y/n] ');
+      if (!/^n/i.test(cast)) sh('sh', [path.join(ROOT, 'scripts', 'cast.sh')], { stdio: 'inherit' });
+    } else {
+      console.log('  Server not running — start it (npm start) and cast with: claude-monitor cast');
+    }
   }
 
   console.log(`\nDone! Useful commands:
