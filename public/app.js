@@ -11,7 +11,7 @@
     activeApproval: null,
   };
 
-  // ---------------------------------------------------------------- reloj
+  // ---------------------------------------------------------------- clock
   function tickClock() {
     const d = new Date();
     $('clock').textContent = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -19,8 +19,8 @@
   setInterval(tickClock, 5000);
   tickClock();
 
-  // ---------------------------------------------------------------- sesiones
-  const STATUS_TEXT = { working: 'TRABAJANDO', waiting: 'ESPERANDO', idle: 'LISTO', ended: 'CERRADA' };
+  // ---------------------------------------------------------------- sessions
+  const STATUS_TEXT = { working: 'WORKING', waiting: 'WAITING', idle: 'READY', ended: 'ENDED' };
 
   function renderSessions() {
     const list = $('sessions-list');
@@ -40,9 +40,9 @@
   }
 
   const MASCOT_TEXT = {
-    alert: '&#9888; APROBACION &#9888;',
-    waiting: 'ESPERANDO...',
-    working: 'TRABAJANDO',
+    alert: '&#9888; APPROVAL &#9888;',
+    waiting: 'WAITING...',
+    working: 'WORKING',
     sleep: 'zZz',
   };
 
@@ -60,7 +60,7 @@
     label.innerHTML = MASCOT_TEXT[m];
   }
 
-  // ---------------------------------------------------------------- eventos
+  // ---------------------------------------------------------------- events
   const EVT_ICON = {
     SessionStart: '&#9654;', SessionEnd: '&#9632;', Stop: '&#10003;', SubagentStop: '&#9720;',
     Notification: '&#9888;', PreCompact: '&#9851;', UserPromptSubmit: '&#9998;',
@@ -83,7 +83,7 @@
     }
   }
 
-  // ---------------------------------------------------------------- consumos
+  // ---------------------------------------------------------------- usage
   const MODEL_NAMES = [
     [/fable/i, 'FABLE 5'], [/opus/i, 'OPUS'], [/sonnet/i, 'SONNET'], [/haiku/i, 'HAIKU'],
   ];
@@ -109,8 +109,8 @@
     if (!u || !u.data) return;
     $('usage-stale').hidden = !u.stale;
 
-    // bloque 5h: % REAL del límite de sesión del plan (mismo dato que /usage);
-    // fallback al tiempo transcurrido si el plan no está disponible
+    // 5h block: REAL % of the plan's session limit (same data as /usage);
+    // falls back to elapsed time if the plan isn't available
     const plan = u.data.plan;
     const block = u.data.blocks?.blocks?.find((b) => b.isActive);
     const bar = $('block-bar');
@@ -127,11 +127,11 @@
       pct = Math.min(1, Math.max(0, (Date.now() - Date.parse(block.startTime)) / (Date.parse(block.endTime) - Date.parse(block.startTime))));
       $('block-reset').textContent = `RESET ${fmtTime(block.endTime)}`;
     } else {
-      $('block-reset').textContent = 'SIN BLOQUE';
+      $('block-reset').textContent = 'NO BLOCK';
     }
     $('block-info').innerHTML = block
       ? `<b>${fmtTokens(block.totalTokens)}</b> tok`
-      : 'sin actividad en el bloque actual';
+      : 'no activity in current block';
     for (let i = 0; i < SEGS; i++) {
       const seg = document.createElement('div');
       seg.className = 'block-seg';
@@ -142,8 +142,8 @@
       bar.appendChild(seg);
     }
 
-    // barras con los % REALES de los límites del plan (como /usage);
-    // el $ de ccusage acompaña a cada barra como referencia de costo.
+    // bars with REAL % of the plan's limits (like /usage);
+    // ccusage's $ accompanies each bar as a cost reference.
     const days = u.data.daily?.daily || [];
     const today = days.find((d) => d.period === todayPeriod());
     const weeks = u.data.weekly?.weekly || [];
@@ -154,15 +154,15 @@
     const rows = [];
     const maxDaily = Math.max(...days.map((d) => d.totalCost), 0.01);
     rows.push({
-      label: 'HOY $',
+      label: 'TODAY $',
       main: fmtCost(today?.totalCost),
-      sub: today ? fmtTokens(today.totalTokens) + ' tok' : 'sin datos hoy',
+      sub: today ? fmtTokens(today.totalTokens) + ' tok' : 'no data today',
       pct: (today?.totalCost || 0) / maxDaily,
       cls: '',
     });
     if (plan?.weeklyAll) {
       rows.push({
-        label: 'SEMANA TODOS',
+        label: 'WEEK ALL',
         main: plan.weeklyAll.percent + '%',
         sub: fmtDay(plan.weeklyAll.resetsAt),
         pct: plan.weeklyAll.percent / 100,
@@ -172,7 +172,7 @@
     for (const s of (plan?.scoped || [])) {
       const isFable = /fable/i.test(s.name);
       rows.push({
-        label: s.name.toUpperCase() + ' SEMANA',
+        label: s.name.toUpperCase() + ' WEEK',
         main: s.percent + '%',
         sub: fmtDay(s.resetsAt),
         pct: s.percent / 100,
@@ -180,11 +180,11 @@
       });
     }
     if (!plan) {
-      // fallback sin API del plan: semana en $ relativo a la mejor semana
+      // fallback without plan API: week in $ relative to the best week
       const maxWeekly = Math.max(...weeks.map((w) => w.totalCost), 0.01);
-      rows.push({ label: 'SEMANA $', main: fmtCost(week?.totalCost), sub: week ? fmtTokens(week.totalTokens) + ' tok' : '', pct: (week?.totalCost || 0) / maxWeekly, cls: '' });
+      rows.push({ label: 'WEEK $', main: fmtCost(week?.totalCost), sub: week ? fmtTokens(week.totalTokens) + ' tok' : '', pct: (week?.totalCost || 0) / maxWeekly, cls: '' });
       if (fable) {
-        rows.push({ label: 'FABLE 5 HOY', main: fmtCost(fable.cost), sub: 'del total de hoy', pct: today?.totalCost ? fable.cost / today.totalCost : 0, cls: 'fable' });
+        rows.push({ label: 'FABLE 5 TODAY', main: fmtCost(fable.cost), sub: "of today's total", pct: today?.totalCost ? fable.cost / today.totalCost : 0, cls: 'fable' });
       }
     }
 
@@ -208,10 +208,10 @@
   }
   function fmtDay(iso) {
     const d = new Date(iso);
-    return ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'][d.getDay()] + ' ' + fmtTime(iso);
+    return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][d.getDay()] + ' ' + fmtTime(iso);
   }
 
-  // ---------------------------------------------------------------- aprobaciones
+  // ---------------------------------------------------------------- approvals
   function showNextApproval() {
     if (state.activeApproval || !state.approvalQueue.length) return;
     const a = state.approvalQueue.shift();
@@ -259,11 +259,11 @@
   $('btn-allow').addEventListener('click', () => decide('allow'));
   $('btn-deny').addEventListener('click', () => decide('deny'));
 
-  // ---------------------------------------------------------------- modo remoto
+  // ---------------------------------------------------------------- remote mode
   function renderMode() {
     const t = $('mode-toggle');
     t.dataset.on = String(state.remoteMode);
-    t.innerHTML = `REMOTO <b>${state.remoteMode ? 'ON' : 'OFF'}</b>`;
+    t.innerHTML = `REMOTE <b>${state.remoteMode ? 'ON' : 'OFF'}</b>`;
   }
   $('mode-toggle').addEventListener('click', () => {
     fetch('/mode', {

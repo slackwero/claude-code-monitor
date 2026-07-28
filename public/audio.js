@@ -1,6 +1,6 @@
-// Chiptunes 8-bit generados con WebAudio: un jingle distinto por tipo de evento.
-// El chip del header es un toggle permanente: TOCA P/SONIDO (bloqueado por
-// autoplay) -> SONIDO ON <-> SONIDO OFF (preferencia guardada en localStorage).
+// 8-bit chiptunes generated with WebAudio: a distinct jingle per event type.
+// The header chip is a permanent toggle: TAP FOR SOUND (blocked by
+// autoplay) -> SOUND ON <-> SOUND OFF (preference saved in localStorage).
 (function () {
   'use strict';
 
@@ -8,19 +8,19 @@
   let muted = false;
   try { muted = localStorage.getItem('nm-muted') === '1'; } catch (_) {}
 
-  // Melodías: [frecuencia Hz, duración s, tipo de onda opcional]
+  // Melodies: [frequency Hz, duration s, optional wave type]
   const TUNES = {
-    start:    [[523, .09], [659, .09], [784, .09], [1047, .18]],             // arpegio ascendente C-E-G-C
-    done:     [[1319, .12], [1568, .12], [2637, .12], [2093, .12], [2349, .12], [3136, .22]], // 1-UP estilo Mario
-    end:      [[659, .12], [523, .12], [392, .2]],                           // despedida descendente
-    notify:   [[988, .09], [0, .05], [988, .12]],                            // doble bip ámbar
-    subagent: [[988, .08], [1319, .38]],                                     // moneda estilo Mario: B5 -> E6
-    subagentStart: [[880, .08], [740, .12]],                                 // subagente arranca: baja
-    prompt:   [[1047, .07], [1319, .1]],                                     // nueva solicitud: blip alegre
-    compact:  [[300, .04], [400, .04], [500, .04], [600, .04], [700, .08]],  // barrido
-    error:    [[330, .15], [247, .15], [175, .3]],                           // descendente grave
-    approval: [[880, .12], [0, .06], [880, .12], [0, .06], [1175, .3]],      // alerta insistente
-    pipe:     [[784, .05], [698, .05], [622, .05], [554, .05], [494, .05], [440, .05], [392, .05], [349, .09]], // warp pipe estilo Mario: bajada escalonada
+    start:    [[523, .09], [659, .09], [784, .09], [1047, .18]],             // ascending arpeggio C-E-G-C
+    done:     [[1319, .12], [1568, .12], [2637, .12], [2093, .12], [2349, .12], [3136, .22]], // Mario-style 1-UP
+    end:      [[659, .12], [523, .12], [392, .2]],                           // descending farewell
+    notify:   [[988, .09], [0, .05], [988, .12]],                            // double amber beep
+    subagent: [[988, .08], [1319, .38]],                                     // Mario-style coin: B5 -> E6
+    subagentStart: [[880, .08], [740, .12]],                                 // subagent start: descending
+    prompt:   [[1047, .07], [1319, .1]],                                     // new request: cheerful blip
+    compact:  [[300, .04], [400, .04], [500, .04], [600, .04], [700, .08]],  // sweep
+    error:    [[330, .15], [247, .15], [175, .3]],                           // low descending
+    approval: [[880, .12], [0, .06], [880, .12], [0, .06], [1175, .3]],      // insistent alert
+    pipe:     [[784, .05], [698, .05], [622, .05], [554, .05], [494, .05], [440, .05], [392, .05], [349, .09]], // Mario-style warp pipe: stepped descent
     toggle:   [[1319, .06]],                                                 // click
   };
 
@@ -50,7 +50,7 @@
         const gain = ac.createGain();
         osc.type = wave || 'square';
         osc.frequency.value = freq;
-        // envolvente corta estilo chip: ataque instantáneo, caída rápida
+        // short chip-style envelope: instant attack, fast decay
         gain.gain.setValueAtTime(0.12, t);
         gain.gain.exponentialRampToValueAtTime(0.003, t + dur);
         osc.connect(gain).connect(ac.destination);
@@ -69,14 +69,14 @@
     const locked = !muted && (!ctx || ctx.state !== 'running');
     const state = locked ? 'locked' : muted ? 'muted' : 'on';
     chip.dataset.state = state;
-    chip.innerHTML = state === 'locked' ? '&#128264; TOCA P/SONIDO'
-                   : state === 'muted' ? '&#128263; SONIDO OFF'
-                   : '&#128266; SONIDO ON';
+    chip.innerHTML = state === 'locked' ? '&#128264; TAP FOR SOUND'
+                   : state === 'muted' ? '&#128263; SOUND OFF'
+                   : '&#128266; SOUND ON';
   }
 
   if (chip) {
     chip.addEventListener('click', (e) => {
-      e.stopPropagation(); // que no dispare también el unlock global
+      e.stopPropagation(); // avoid also triggering the global unlock
       const ac = ensureCtx();
       if (!muted && ac.state !== 'running') {
         ac.resume().then(updateChip);
@@ -93,7 +93,7 @@
     });
   }
 
-  // desbloqueo de autoplay: primer toque en cualquier parte reanuda el contexto
+  // autoplay unlock: first tap anywhere resumes the context
   function unlock() {
     if (muted) return;
     const ac = ensureCtx();
@@ -102,7 +102,7 @@
   document.addEventListener('touchstart', unlock, { once: false, passive: true });
   document.addEventListener('click', unlock, { once: false, passive: true });
 
-  // al cargar: probar si el autoplay está permitido (en DashCast normalmente sí)
+  // on load: test whether autoplay is allowed (usually yes on DashCast)
   window.addEventListener('load', () => {
     if (!muted) {
       const ac = ensureCtx();
@@ -112,7 +112,7 @@
     updateChip();
   });
 
-  // test de los jingles: mantener presionado el logo ~1s
+  // jingle test: press and hold the logo ~1s
   let pressTimer = null;
   const mascot = document.getElementById('mascot');
   if (mascot) {

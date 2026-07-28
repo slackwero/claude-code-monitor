@@ -1,5 +1,5 @@
-// Mascota pixel de Claude: refleja el estado global del dashboard.
-// Estados: working (bob + parpadeo), waiting (rebote alarmado), sleep (zZz), alert (temblor)
+// Claude's pixel mascot: reflects the dashboard's global state.
+// States: working (bob + blink), waiting (alarmed bounce), sleep (zZz), alert (shake)
 (function () {
   'use strict';
 
@@ -21,7 +21,7 @@
   const canvas = document.getElementById('mascot');
   const ctx = canvas.getContext('2d');
   const CELL = Math.floor(canvas.width / GRID[0].length);
-  const S = CELL / 4; // factor de escala para desplazamientos de animación
+  const S = CELL / 4; // scale factor for animation offsets
   const offY = Math.floor((canvas.height - GRID.length * CELL) / 2);
   let state = 'sleep';
   let frame = 0;
@@ -32,7 +32,7 @@
                : state === 'waiting' ? (frame % 4 < 2 ? 0 : -3 * S)
                : 0;
     const shakeX = state === 'alert' ? (((frame % 2) * 2 - 1) * S) : 0;
-    const blink = state === 'working' && frame % 24 >= 22; // parpadeo ocasional
+    const blink = state === 'working' && frame % 24 >= 22; // occasional blink
     const eyesClosed = state === 'sleep' || blink;
 
     for (let r = 0; r < GRID.length; r++) {
@@ -50,7 +50,7 @@
       }
     }
 
-    // zZz cuando duerme, escalado al tamaño del canvas
+    // zZz while sleeping, scaled to canvas size
     if (state === 'sleep' && frame % 16 < 12) {
       ctx.fillStyle = '#a08469';
       const zs = [[58, 8], [54, 14], [50, 20]];
