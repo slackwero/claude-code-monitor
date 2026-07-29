@@ -18,18 +18,24 @@ requests by tapping the Hub's screen**.
 - **Plan usage bars** — the same percentages `/usage` shows (5h block, weekly),
   read from Claude Code's own OAuth token, plus cost estimates via
   [ccusage](https://github.com/ryoppippi/ccusage).
-- **Skins** — tap the SKIN chip in the header to cycle six looks, each with
-  its own identity: Claude (the retro default), a Zelda SNES homage (grass
-  field, dialog-box panels, Triforce gold and a pixel Link mascot), a Pokémon
-  starters homage (Pikachu mascot and accents, Bulbasaur/Charmander/Squirtle
-  status colors — tap the mascot to cycle through the four starters), and
-  three modern ones — a Jarvis-style holographic HUD (Orbitron
-  type, HUD grid, animated arc reactor mascot), cyberpunk neon (chamfered
-  panels, RGB-glitch mascot) and vaporwave outrun (Monoton neon title,
-  purple gradient). Fonts are bundled locally (OFL license) — still zero
-  CDNs. The choice lives on the server (persists across restarts and applies
-  to every connected browser); you can also force one with
-  `curl -X POST localhost:8787/skin -H 'Content-Type: application/json' -d '{"skin":"jarvis"}'`.
+- **Skins** — tap the SKIN chip in the header to cycle six full identities
+  (see the [gallery](#skins-gallery)): **Claude**, the retro default — short-tap
+  the mascot to swap its eyes between classic, smug `¬ ¬`, chevron `> <` and
+  thug-life pixel shades; **Zelda**, an SNES game screen — grass-checker field,
+  dialog-box panels, Triforce gold and a pixel Link mascot; **Pokémon**, the
+  four starters — water field, Pikachu accents, Bulbasaur/Charmander bar
+  colors, and a short-tap on the mascot cycles Pikachu → Bulbasaur →
+  Charmander → Squirtle; **Cyberpunk** — chamfered neon panels and an
+  RGB-glitch mascot; **Vaporwave** — Monoton neon title over a purple
+  gradient; and **Jarvis** — a holographic HUD with grid, thin glowing panels
+  and an animated arc-reactor mascot. Modern-skin fonts (Orbitron, Rajdhani,
+  Monoton) are bundled locally under the OFL license — still zero CDNs.
+  The skin and mascot choice live on the server: they persist across restarts,
+  apply to every connected browser at once, and can be forced via
+  `curl -X POST localhost:8787/skin -H 'Content-Type: application/json' -d '{"skin":"jarvis"}'`
+  (also accepts `{"variant":"squirt"}`).
+- **Fits any screen** — the canvas is a fixed 1024×600 (the Hub's exact
+  resolution) and auto-scales to fill any other browser window, centered.
 - **8-bit chiptunes** — WebAudio-generated jingles for session start, task
   done, waiting for input, approvals and errors. No audio files. Press and
   hold the logo for ~1s to play all 11 jingles in sequence (handy sound check).
@@ -47,8 +53,8 @@ requests by tapping the Hub's screen**.
 | [catt](https://github.com/skorokithakis/catt) (only for casting) | `pipx install catt` | `pipx install catt` |
 | Autostart | launchd | systemd (user units) |
 
-Any 1024×600-capable browser works if you don't have a Nest Hub — casting is
-optional.
+Any browser works if you don't have a Nest Hub (the dashboard auto-scales to
+the window) — casting is optional.
 
 ## Install
 
@@ -130,6 +136,20 @@ claude-monitor stop        # services + autostart + cast
 npm run uninstall-hooks    # removes only our hook entries
 rm ~/.local/bin/claude-monitor
 ```
+
+## Skins gallery
+
+Tap the SKIN chip to cycle them; tap the mascot for its variants
+(eye styles on Claude, starters on Pokémon).
+
+| | |
+|:---:|:---:|
+| <img src=".github/skin-claude.png" width="390" alt="Claude skin"> | <img src=".github/skin-zelda.png" width="390" alt="Zelda skin"> |
+| **Claude** — retro default, 4 eye styles | **Zelda** — SNES Hyrule, pixel Link |
+| <img src=".github/skin-pokemon.png" width="390" alt="Pokémon skin"> | <img src=".github/skin-cyberpunk.png" width="390" alt="Cyberpunk skin"> |
+| **Pokémon** — the four starters | **Cyberpunk** — neon, chamfered panels |
+| <img src=".github/skin-vaporwave.png" width="390" alt="Vaporwave skin"> | <img src=".github/skin-jarvis.png" width="390" alt="Jarvis skin"> |
+| **Vaporwave** — outrun neon | **Jarvis** — holographic HUD |
 
 ## License
 
