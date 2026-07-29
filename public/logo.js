@@ -36,7 +36,7 @@
     const v = (name, fb) => cs.getPropertyValue(name).trim() || fb;
     COLORS = {
       body: v('--accent', '#D97757'),
-      eyes: v('--ink', '#f5e6d0'),
+      eyes: '#141414', // siempre negros, en cualquier skin
       warn: v('--warn', '#f2c14e'),
       bad: v('--bad', '#e05b4b'),
       dim: v('--dim', '#a08469'),
