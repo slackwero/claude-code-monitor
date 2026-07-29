@@ -6,6 +6,7 @@
     sessions: [],
     events: [],
     remoteMode: false,
+    skin: 'claude',
     usage: null,
     approvalQueue: [],
     activeApproval: null,
@@ -259,6 +260,51 @@
   $('btn-allow').addEventListener('click', () => decide('allow'));
   $('btn-deny').addEventListener('click', () => decide('deny'));
 
+  // ---------------------------------------------------------------- skins
+  // ids must match the server's whitelist; labels are short so the header fits
+  const SKIN_CYCLE = [
+    ['claude', 'CLAUDE'], ['zelda', 'ZELDA'], ['pokemon', 'POKEMON'],
+    ['cyberpunk', 'CYBER'], ['vaporwave', 'VAPOR'], ['jarvis', 'JARVIS'],
+  ];
+
+  function applySkin(skin, variant) {
+    state.skin = skin;
+    document.documentElement.dataset.skin = skin;
+    const entry = SKIN_CYCLE.find(([id]) => id === skin) || SKIN_CYCLE[0];
+    $('skin-chip').innerHTML = `SKIN <b>${entry[1]}</b>`;
+    window.mascot.setSkin(skin);
+    if (variant) window.mascot.setVariant(variant);
+  }
+
+  // tap corto en la mascota: cambia de personaje en skins con variantes
+  // (el press-and-hold de ~1s para los jingles vive en audio.js y no se toca)
+  let mascotPressAt = 0;
+  const markMascotPress = () => { mascotPressAt = Date.now(); };
+  $('mascot').addEventListener('mousedown', markMascotPress);
+  $('mascot').addEventListener('touchstart', markMascotPress, { passive: true });
+  $('mascot').addEventListener('click', () => {
+    if (Date.now() - mascotPressAt >= 800) return;
+    const next = window.mascot.nextVariant();
+    if (!next) return;
+    fetch('/skin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ variant: next }),
+    }).catch(() => {});
+    window.chip.play('toggle');
+  });
+
+  $('skin-chip').addEventListener('click', () => {
+    const i = SKIN_CYCLE.findIndex(([id]) => id === state.skin);
+    const next = SKIN_CYCLE[(i + 1) % SKIN_CYCLE.length][0];
+    fetch('/skin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skin: next }),
+    }).catch(() => {});
+    window.chip.play('toggle');
+  });
+
   // ---------------------------------------------------------------- remote mode
   function renderMode() {
     const t = $('mode-toggle');
@@ -295,6 +341,7 @@
       state.remoteMode = snap.remoteMode;
       state.usage = snap.usage;
       state.approvalQueue = snap.approvals || [];
+      applySkin(snap.skin || 'claude', snap.skinVariant);
       renderSessions(); renderEvents(); renderUsage(); renderMode(); showNextApproval();
     });
 
@@ -317,6 +364,7 @@
 
     es.addEventListener('usage', (m) => { state.usage = JSON.parse(m.data); renderUsage(); });
     es.addEventListener('mode', (m) => { state.remoteMode = JSON.parse(m.data).remoteMode; renderMode(); });
+    es.addEventListener('skin', (m) => { const d = JSON.parse(m.data); applySkin(d.skin, d.variant); });
 
     es.onerror = () => {
       es.close();
@@ -325,6 +373,27 @@
     };
   }
   connect();
+
+  // ---------------------------------------------------------------- browser fit
+  // El lienzo es fijo 1024×600 (Nest Hub). En el Hub la escala queda en 1 y
+  // esto no hace nada; en un navegador de escritorio escala el lienzo completo
+  // para llenar la ventana, centrado, sin tocar el layout interno.
+  function fitToWindow() {
+    const s = Math.min(window.innerWidth / 1024, window.innerHeight / 600);
+    const b = document.body;
+    if (Math.abs(s - 1) < 0.01) {
+      b.style.transform = '';
+      b.style.marginLeft = '';
+      b.style.marginTop = '';
+      return;
+    }
+    b.style.transformOrigin = 'top left';
+    b.style.transform = `scale(${s})`;
+    b.style.marginLeft = Math.max(0, (window.innerWidth - 1024 * s) / 2) + 'px';
+    b.style.marginTop = Math.max(0, (window.innerHeight - 600 * s) / 2) + 'px';
+  }
+  window.addEventListener('resize', fitToWindow);
+  fitToWindow();
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

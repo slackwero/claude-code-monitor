@@ -1,0 +1,255 @@
+/* Skins. "claude" es el default (:root en style.css) y conserva el look retro;
+   zelda y pokemon son pantallas de juego pixeladas; jarvis, cyberpunk y
+   vaporwave redefinen además fuente, texturas y forma. Ningún skin toca el
+   layout 1024×600: solo color, sombra, borde, radius, clip-path y tipografía. */
+
+/* ---------------------------------------------------------------- zelda
+   A Link to the Past (SNES): pantalla de juego, no monitor retro — campo de
+   pasto de Hyrule en damero, paneles tipo caja de diálogo (azul marino con
+   borde pergamino), dorado Trifuerza y rojo corazón. Pixelado (fuente pixel)
+   pero sin scanlines ni viñeta CRT. Mascota: Link (renderer "hero"). */
+html[data-skin="zelda"] {
+  --bg: #101830;
+  --panel: #182444;
+  --panel-edge: #f8f0d0;
+  --ink: #f8f0d0;
+  --dim: #92a4c0;
+  --accent: #f8d858;
+  --warn: #f8b858;
+  --ok: #58c878;
+  --bad: #f84040;
+  --led-off: #2a3a5c;
+  --seg-bg: rgba(248,240,208,.10);
+  --btn-ok-edge: #3e9a58;
+  --btn-bad-edge: #b82828;
+  --overlay: rgba(6,10,24,.88);
+  --panel-shadow: 4px 4px 0 rgba(0,0,0,.35);
+  --scanline: transparent;
+  --vignette: transparent;
+  --radius: 8px;
+}
+html[data-skin="zelda"] body {
+  background: conic-gradient(#568c38 25%, #4c7f30 0 50%, #568c38 0 75%, #4c7f30 0) 0 0 / 64px 64px;
+}
+html[data-skin="zelda"] #header { border-bottom-color: rgba(0,0,0,.25); }
+html[data-skin="zelda"] .panel h2 { color: var(--accent); border-bottom-color: rgba(248,240,208,.3); }
+html[data-skin="zelda"] .session-card { border-color: rgba(248,240,208,.35); }
+html[data-skin="zelda"] .block-seg,
+html[data-skin="zelda"] .ubar-seg { border-color: rgba(248,240,208,.25); }
+
+/* ---------------------------------------------------------------- pokemon
+   Los cuatro iniciales sobre la base del skin zelda (pantalla de juego,
+   pixelado, sin CRT): amarillo Pikachu de acento, verde Bulbasaur en OK,
+   naranja/rojo Charmander en avisos y alertas, azul Squirtle en barras.
+   Borde superior de paneles rojo Poké Ball. Mascota: Pikachu. */
+html[data-skin="pokemon"] {
+  --bg: #182038;
+  --panel: #202c4c;
+  --panel-edge: #f8f0e0;
+  --ink: #f8f8f0;
+  --dim: #92a0c0;
+  --accent: #f8d030;
+  --warn: #f0a030;
+  --ok: #78c850;
+  --bad: #e84040;
+  --led-off: #2c3a60;
+  --seg-bg: rgba(104,144,240,.15);
+  --btn-ok-edge: #58a038;
+  --btn-bad-edge: #b03030;
+  --overlay: rgba(8,12,28,.88);
+  --panel-shadow: 4px 4px 0 rgba(0,0,0,.35);
+  --scanline: transparent;
+  --vignette: transparent;
+  --radius: 8px;
+}
+/* agua de surf estilo Pokémon (azul Squirtle), distinta del pasto de zelda */
+html[data-skin="pokemon"] body {
+  background: conic-gradient(#4898d8 25%, #3888c8 0 50%, #4898d8 0 75%, #3888c8 0) 0 0 / 64px 64px;
+}
+html[data-skin="pokemon"] #header { border-bottom-color: rgba(0,0,0,.25); }
+html[data-skin="pokemon"] .panel { border-top-color: #e84040; }
+html[data-skin="pokemon"] .panel h2 { color: var(--accent); border-bottom-color: rgba(248,240,224,.3); }
+html[data-skin="pokemon"] .session-card { border-color: rgba(248,240,224,.35); }
+html[data-skin="pokemon"] .block-seg,
+html[data-skin="pokemon"] .ubar-seg { border-color: rgba(104,144,240,.4); }
+/* barras con los colores de los iniciales: BLOCK y FABLE naranja Charmander,
+   TODAY $ y WEEK ALL verde Bulbasaur (el rojo "hot" del block se conserva) */
+html[data-skin="pokemon"] .block-seg.on { background: #f08030; border-color: #f08030; }
+html[data-skin="pokemon"] .block-seg.on.hot { background: var(--bad); border-color: var(--bad); }
+html[data-skin="pokemon"] .ubar-row .ubar-seg.on { background: #78c850; border-color: #78c850; }
+html[data-skin="pokemon"] .ubar-row.fable .ubar-seg.on { background: #f08030; border-color: #f08030; }
+html[data-skin="pokemon"] .ubar-row.fable .ubar-label,
+html[data-skin="pokemon"] .ubar-row.fable .ubar-val { color: #f08030; }
+
+/* ---------------------------------------------------------------- jarvis
+   HUD holográfico moderno: Orbitron/Rajdhani, rejilla en vez de scanlines,
+   líneas finas translúcidas, barras continuas con gradiente, arc reactor. */
+html[data-skin="jarvis"] {
+  --bg: #04121e;
+  --panel: #082030;
+  --panel-edge: rgba(0,229,255,.35);
+  --ink: #d0f4ff;
+  --dim: #4f89a6;
+  --accent: #00e5ff;
+  --warn: #ffc857;
+  --ok: #37e6b0;
+  --bad: #ff5a5a;
+  --led-off: #0d3448;
+  --seg-bg: rgba(0,229,255,.06);
+  --btn-ok-edge: #26a982;
+  --btn-bad-edge: #c24040;
+  --overlay: rgba(1,8,14,.88);
+  --hard-shadow: none;
+  --hard-shadow-sm: none;
+  --title-glow: 0 0 10px rgba(0,229,255,.7);
+  --panel-shadow: 0 0 14px rgba(0,229,255,.10), inset 0 0 12px rgba(0,229,255,.05);
+  --radius: 8px;
+  --font-title: 'Orbitron', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --fs-scale: 1.4;
+}
+html[data-skin="jarvis"] body { font-weight: 500; letter-spacing: .3px; }
+html[data-skin="jarvis"] #header h1 { font-weight: 700; letter-spacing: 5px; }
+html[data-skin="jarvis"] #clock { font-weight: 500; letter-spacing: 2px; }
+html[data-skin="jarvis"] .panel h2 { font-weight: 500; letter-spacing: 4px; border-bottom-width: 1px; }
+html[data-skin="jarvis"] #crt {
+  background:
+    repeating-linear-gradient(0deg, rgba(0,229,255,.03) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(0,229,255,.03) 0 1px, transparent 1px 32px),
+    radial-gradient(ellipse at center, transparent 65%, rgba(0,0,0,.35) 100%);
+}
+html[data-skin="jarvis"] #header { border-bottom-width: 1px; border-bottom-color: rgba(0,229,255,.35); }
+html[data-skin="jarvis"] .panel {
+  border-width: 1px;
+  background: linear-gradient(180deg, rgba(0,229,255,.06), rgba(0,229,255,0) 45%), var(--panel);
+}
+html[data-skin="jarvis"] .chip,
+html[data-skin="jarvis"] .session-card,
+html[data-skin="jarvis"] #approval-card,
+html[data-skin="jarvis"] #approval-input,
+html[data-skin="jarvis"] #approval-countdown { border-width: 1px; }
+html[data-skin="jarvis"] #approval-buttons button { border-width: 1px; }
+html[data-skin="jarvis"] .led { border-radius: 50%; box-shadow: 0 0 6px rgba(0,229,255,.4); }
+html[data-skin="jarvis"] #mascot { image-rendering: auto; }
+html[data-skin="jarvis"] #block-bar,
+html[data-skin="jarvis"] .ubar {
+  gap: 0;
+  border: 1px solid rgba(0,229,255,.3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+html[data-skin="jarvis"] .block-seg,
+html[data-skin="jarvis"] .ubar-seg { border: none; background: rgba(0,229,255,.06); }
+html[data-skin="jarvis"] .block-seg.on { background: linear-gradient(180deg, #6cf6ff, #00b6d5); box-shadow: none; }
+html[data-skin="jarvis"] .block-seg.on.hot { background: linear-gradient(180deg, #ff8f8f, #e03535); }
+html[data-skin="jarvis"] .ubar-row .ubar-seg.on { background: linear-gradient(180deg, #e6fbff, #9adfef); box-shadow: none; }
+html[data-skin="jarvis"] .ubar-row.fable .ubar-seg.on { background: linear-gradient(180deg, #6cf6ff, #00b6d5); }
+html[data-skin="jarvis"] .ubar-row.model .ubar-seg.on { background: linear-gradient(180deg, #66f2c8, #1fb890); }
+
+/* ---------------------------------------------------------------- cyberpunk
+   Neón moderno estilo 2077: Rajdhani en todo, esquinas cortadas en diagonal,
+   línea de acento superior, barras de ticks finos. */
+html[data-skin="cyberpunk"] {
+  --bg: #0a0a1a;
+  --panel: #12122a;
+  --panel-edge: #2a2a55;
+  --ink: #e0f4ff;
+  --dim: #6f7fae;
+  --accent: #00e5ff;
+  --warn: #fcee0a;
+  --ok: #39ff8e;
+  --bad: #ff2e6c;
+  --led-off: #232347;
+  --seg-bg: rgba(0,229,255,.08);
+  --btn-ok-edge: #22b866;
+  --btn-bad-edge: #c11e4e;
+  --overlay: rgba(4,4,14,.88);
+  --hard-shadow: none;
+  --hard-shadow-sm: none;
+  --title-glow: 0 0 8px rgba(255,46,108,.6);
+  --panel-shadow: none;
+  --scanline: rgba(0,0,0,.10);
+  --vignette: rgba(0,0,0,.4);
+  --font-title: 'Rajdhani', sans-serif;
+  --font-body: 'Rajdhani', sans-serif;
+  --fs-scale: 1.35;
+}
+html[data-skin="cyberpunk"] body { font-weight: 500; }
+html[data-skin="cyberpunk"] #header h1,
+html[data-skin="cyberpunk"] .panel h2 { font-weight: 700; letter-spacing: 4px; }
+html[data-skin="cyberpunk"] #clock { font-weight: 700; }
+html[data-skin="cyberpunk"] .panel,
+html[data-skin="cyberpunk"] #approval-card {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  border-width: 2px;
+  border-top-color: var(--accent);
+}
+html[data-skin="cyberpunk"] .session-card {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+html[data-skin="cyberpunk"] #approval-buttons button {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+html[data-skin="cyberpunk"] #block-bar,
+html[data-skin="cyberpunk"] .ubar { gap: 1px; border: 1px solid var(--panel-edge); }
+html[data-skin="cyberpunk"] .block-seg,
+html[data-skin="cyberpunk"] .ubar-seg { border: none; }
+html[data-skin="cyberpunk"] .block-seg.on,
+html[data-skin="cyberpunk"] .ubar-row .ubar-seg.on { box-shadow: none; }
+
+/* ---------------------------------------------------------------- vaporwave
+   Outrun: Monoton de neón en el título, Rajdhani en datos, degradado
+   púrpura→rosa de fondo, píldoras redondeadas. El pixel-art de la mascota y
+   las scanlines VHS se quedan: son canon del género. */
+html[data-skin="vaporwave"] {
+  --bg: #1a0f2e;
+  --panel: rgba(42,26,69,.8);
+  --panel-edge: rgba(255,113,206,.4);
+  --ink: #fdeaff;
+  --dim: #9a7fb8;
+  --accent: #ff71ce;
+  --warn: #fffb96;
+  --ok: #05ffa1;
+  --bad: #ff4f7e;
+  --led-off: #3a2560;
+  --seg-bg: rgba(255,113,206,.08);
+  --btn-ok-edge: #04b876;
+  --btn-bad-edge: #c23960;
+  --overlay: rgba(12,6,24,.88);
+  --hard-shadow: none;
+  --hard-shadow-sm: none;
+  --title-glow: 0 0 12px rgba(255,113,206,.8);
+  --panel-shadow: 0 6px 18px rgba(0,0,0,.35);
+  --scanline: rgba(0,0,0,.10);
+  --vignette: rgba(0,0,0,.3);
+  --radius: 10px;
+  --font-title: 'Monoton', cursive;
+  --font-body: 'Rajdhani', sans-serif;
+  --fs-scale: 1.35;
+}
+html[data-skin="vaporwave"] body {
+  font-weight: 500;
+  background: linear-gradient(180deg, #140a26 0%, #1f0f3a 55%, #3a1550 85%, #55206b 100%);
+}
+/* Monoton solo funciona grande: título y reloj; los h2 vuelven a Rajdhani */
+html[data-skin="vaporwave"] #header h1 { font-size: 21px; font-weight: 400; letter-spacing: 4px; }
+html[data-skin="vaporwave"] #clock { font-weight: 400; letter-spacing: 2px; }
+html[data-skin="vaporwave"] .panel h2 { font-family: var(--font-body); font-weight: 700; letter-spacing: 4px; }
+html[data-skin="vaporwave"] .panel { border-width: 1px; }
+html[data-skin="vaporwave"] .chip,
+html[data-skin="vaporwave"] .session-card { border-width: 1px; }
+html[data-skin="vaporwave"] .led { border-radius: 50%; }
+html[data-skin="vaporwave"] #block-bar,
+html[data-skin="vaporwave"] .ubar {
+  gap: 0;
+  border: 1px solid rgba(255,113,206,.35);
+  border-radius: 99px;
+  overflow: hidden;
+}
+html[data-skin="vaporwave"] .block-seg,
+html[data-skin="vaporwave"] .ubar-seg { border: none; background: rgba(255,113,206,.07); }
+html[data-skin="vaporwave"] .block-seg.on { background: linear-gradient(180deg, #ff9ade, #ff4fbe); box-shadow: none; }
+html[data-skin="vaporwave"] .block-seg.on.hot { background: linear-gradient(180deg, #ff7f9f, #ff2e5f); }
+html[data-skin="vaporwave"] .ubar-row .ubar-seg.on { background: linear-gradient(180deg, #fff0fb, #e8b6dd); box-shadow: none; }
+html[data-skin="vaporwave"] .ubar-row.fable .ubar-seg.on { background: linear-gradient(180deg, #ff9ade, #ff4fbe); }
+html[data-skin="vaporwave"] .ubar-row.model .ubar-seg.on { background: linear-gradient(180deg, #7dffd0, #05d689); }
