@@ -18,6 +18,18 @@ requests by tapping the Hub's screen**.
 - **Plan usage bars** — the same percentages `/usage` shows (5h block, weekly),
   read from Claude Code's own OAuth token, plus cost estimates via
   [ccusage](https://github.com/ryoppippi/ccusage).
+- **Skins** — tap the SKIN chip in the header to cycle six looks, each with
+  its own identity: Claude (the retro default), a Zelda SNES homage (grass
+  field, dialog-box panels, Triforce gold and a pixel Link mascot), a Pokémon
+  starters homage (Pikachu mascot and accents, Bulbasaur/Charmander/Squirtle
+  status colors — tap the mascot to cycle through the four starters), and
+  three modern ones — a Jarvis-style holographic HUD (Orbitron
+  type, HUD grid, animated arc reactor mascot), cyberpunk neon (chamfered
+  panels, RGB-glitch mascot) and vaporwave outrun (Monoton neon title,
+  purple gradient). Fonts are bundled locally (OFL license) — still zero
+  CDNs. The choice lives on the server (persists across restarts and applies
+  to every connected browser); you can also force one with
+  `curl -X POST localhost:8787/skin -H 'Content-Type: application/json' -d '{"skin":"jarvis"}'`.
 - **8-bit chiptunes** — WebAudio-generated jingles for session start, task
   done, waiting for input, approvals and errors. No audio files. Press and
   hold the logo for ~1s to play all 11 jingles in sequence (handy sound check).

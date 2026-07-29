@@ -45,6 +45,18 @@ function persistUsageCache() {
   fs.writeFile(USAGE_CACHE_FILE, JSON.stringify(usageCache), (_) => { /* fail-open */ });
 }
 
+// Skin persistence: the chosen skin (and mascot variant) survives restarts.
+const SKINS = ['claude', 'zelda', 'pokemon', 'cyberpunk', 'vaporwave', 'jarvis'];
+const SKIN_VARIANTS = { pokemon: ['pika', 'bulba', 'charma', 'squirt'] };
+const SKIN_FILE = path.join(ROOT, '.skin.json');
+let currentSkin = 'claude';
+let currentVariant = null; // null = mascota default del skin
+try {
+  const saved = JSON.parse(fs.readFileSync(SKIN_FILE, 'utf8'));
+  if (SKINS.includes(saved?.skin)) currentSkin = saved.skin;
+  if ((SKIN_VARIANTS[currentSkin] || []).includes(saved?.variant)) currentVariant = saved.variant;
+} catch (_) { /* no previous skin or corrupted: default */ }
+
 // ---------------------------------------------------------------- SSE
 function sseSend(res, event, data) {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -67,6 +79,8 @@ function snapshot() {
     sessions: [...sessions.entries()].map(([id, s]) => ({ id, ...s })),
     events: eventLog.slice(-EVENT_LOG_MAX),
     remoteMode,
+    skin: currentSkin,
+    skinVariant: currentVariant,
     usage: usageCache,
     approvals: [...pendingApprovals.entries()].map(([id, a]) => ({ id, ...a.payload })),
   };
@@ -393,6 +407,33 @@ const server = http.createServer(async (req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ remoteMode }));
+    return;
+  }
+
+  if (p === '/skin') {
+    if (req.method === 'POST') {
+      const body = await readBody(req);
+      try {
+        const { skin, variant } = JSON.parse(body);
+        // values outside the whitelists are ignored: the server is the authority
+        let changed = false;
+        if (SKINS.includes(skin) && skin !== currentSkin) {
+          currentSkin = skin;
+          currentVariant = null; // cambiar de skin vuelve a la mascota default
+          changed = true;
+        }
+        if ((SKIN_VARIANTS[currentSkin] || []).includes(variant)) {
+          currentVariant = variant;
+          changed = true;
+        }
+        if (changed) {
+          fs.writeFile(SKIN_FILE, JSON.stringify({ skin: currentSkin, variant: currentVariant }), (_) => { /* fail-open */ });
+          broadcast('skin', { skin: currentSkin, variant: currentVariant });
+        }
+      } catch (_) {}
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ skin: currentSkin, variant: currentVariant }));
     return;
   }
 

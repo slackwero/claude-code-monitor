@@ -7,4 +7,5 @@ docs/
 !.github/*.png
 nohup.out
 .usage-cache.json
+.skin.json
 .playwright-mcp/
