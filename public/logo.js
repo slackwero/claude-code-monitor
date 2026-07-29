@@ -27,6 +27,8 @@
   let state = 'sleep';
   let frame = 0;
   let renderer = 'pixel';
+  let currentSkin = 'claude';
+  let variantName = null;
 
   // Colors come from the active skin's CSS variables; cached because
   // draw() runs at 8 fps and the palette only changes on skin switch.
@@ -72,7 +74,9 @@
                : 0;
     const shakeX = state === 'alert' ? (((frame % 2) * 2 - 1) * S) : 0;
     const blink = state === 'working' && frame % 24 >= 22; // occasional blink
-    const eyesClosed = state === 'sleep' || blink;
+    // los estilos de ojos alternativos (skin claude) tapan los ojos del grid
+    const eyeStyle = currentSkin === 'claude' ? (variantName || 'classic') : 'classic';
+    const eyesClosed = eyeStyle !== 'classic' || state === 'sleep' || blink;
 
     // RGB-split ghosts a couple of frames every ~1.5s
     if (withGlitch && frame % 12 < 2) {
@@ -80,7 +84,47 @@
       drawGrid(2 * S, bobY, shakeX, eyesClosed, COLORS.bad, .4);
     }
     drawGrid(0, bobY, shakeX, eyesClosed, null, 1);
+    if (eyeStyle !== 'classic') drawEyeStyle(eyeStyle, bobY, shakeX);
     drawZzz();
+  }
+
+  // Variantes de ojos del skin claude (referencia: figuras 3D del mascot):
+  // smug = cejas ¬ ¬, chevron = > <, shades = lentes pixel con checkers.
+  function drawEyeStyle(style, bobY, shakeX) {
+    const y0 = 3 * CELL + offY + bobY; // fila superior de los ojos del grid
+    const L = 3 * CELL + shakeX;       // x del ojo izquierdo
+    const R = 12 * CELL + shakeX;      // x del ojo derecho
+    ctx.fillStyle = '#141414';
+    if (style === 'smug') {
+      const t = 2 * S;
+      ctx.fillRect(L - CELL, y0, 2 * CELL, t);
+      ctx.fillRect(L + CELL - t, y0 + t, t, t);
+      ctx.fillRect(R - CELL, y0, 2 * CELL, t);
+      ctx.fillRect(R + CELL - t, y0 + t, t, t);
+    } else if (style === 'chevron') {
+      const b = 12;
+      const lx = L - 3;
+      ctx.fillRect(lx, y0, b, b);
+      ctx.fillRect(lx + b, y0 + b, b, b);
+      ctx.fillRect(lx, y0 + 2 * b, b, b);
+      const rx = R - 3;
+      ctx.fillRect(rx + b, y0, b, b);
+      ctx.fillRect(rx, y0 + b, b, b);
+      ctx.fillRect(rx + b, y0 + 2 * b, b, b);
+    } else if (style === 'shades') {
+      const bandX = 2 * CELL + shakeX;
+      ctx.fillRect(bandX, y0, 12 * CELL, 12);          // banda de las gafas
+      const lenses = [48 + shakeX, 192 + shakeX];
+      for (const x of lenses) ctx.fillRect(x, y0 + 12, 48, 12); // lentes
+      ctx.fillStyle = '#f8f8f8';                       // checkers thug-life
+      for (const x of lenses) {
+        ctx.fillRect(x + 5, y0 + 3, 5, 5);
+        ctx.fillRect(x + 15, y0 + 3, 5, 5);
+        ctx.fillRect(x + 25, y0 + 3, 5, 5);
+        ctx.fillRect(x + 10, y0 + 14, 5, 5);
+        ctx.fillRect(x + 20, y0 + 14, 5, 5);
+      }
+    }
   }
 
   // zZz while sleeping, scaled to canvas size
@@ -358,25 +402,32 @@
   setInterval(() => { frame++; draw(); }, 125); // 8 fps, cadencia retro
 
   const RENDERER_BY_SKIN = { jarvis: 'reactor', cyberpunk: 'glitch', zelda: 'link', pokemon: 'pika' };
-  // skins con más de un personaje: un tap corto en la mascota los cicla
-  // (la elección vive en el server y llega por SSE, igual que el skin)
-  const VARIANTS_BY_SKIN = { pokemon: ['pika', 'bulba', 'charma', 'squirt'] };
-  let currentSkin = 'claude';
+  // skins con variantes: un tap corto en la mascota las cicla (la elección
+  // vive en el server y llega por SSE, igual que el skin). En pokemon la
+  // variante es otro sprite; en claude es el estilo de ojos.
+  const VARIANTS_BY_SKIN = {
+    pokemon: ['pika', 'bulba', 'charma', 'squirt'],
+    claude: ['classic', 'smug', 'chevron', 'shades'],
+  };
 
   window.mascot = {
     setState(s) { if (['working', 'waiting', 'sleep', 'alert'].includes(s)) state = s; },
     setSkin(skin) {
       currentSkin = skin;
+      variantName = null;
       renderer = RENDERER_BY_SKIN[skin] || 'pixel';
       readColors();
     },
     setVariant(v) {
-      if ((VARIANTS_BY_SKIN[currentSkin] || []).includes(v)) renderer = v;
+      if (!(VARIANTS_BY_SKIN[currentSkin] || []).includes(v)) return;
+      variantName = v;
+      if (SPRITES[v]) renderer = v;
     },
     nextVariant() {
       const variants = VARIANTS_BY_SKIN[currentSkin];
       if (!variants) return null;
-      return variants[(variants.indexOf(renderer) + 1) % variants.length];
+      const cur = variantName || variants[0];
+      return variants[(variants.indexOf(cur) + 1) % variants.length];
     },
     refreshColors: readColors,
   };

@@ -374,6 +374,27 @@
   }
   connect();
 
+  // ---------------------------------------------------------------- browser fit
+  // El lienzo es fijo 1024×600 (Nest Hub). En el Hub la escala queda en 1 y
+  // esto no hace nada; en un navegador de escritorio escala el lienzo completo
+  // para llenar la ventana, centrado, sin tocar el layout interno.
+  function fitToWindow() {
+    const s = Math.min(window.innerWidth / 1024, window.innerHeight / 600);
+    const b = document.body;
+    if (Math.abs(s - 1) < 0.01) {
+      b.style.transform = '';
+      b.style.marginLeft = '';
+      b.style.marginTop = '';
+      return;
+    }
+    b.style.transformOrigin = 'top left';
+    b.style.transform = `scale(${s})`;
+    b.style.marginLeft = Math.max(0, (window.innerWidth - 1024 * s) / 2) + 'px';
+    b.style.marginTop = Math.max(0, (window.innerHeight - 600 * s) / 2) + 'px';
+  }
+  window.addEventListener('resize', fitToWindow);
+  fitToWindow();
+
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }

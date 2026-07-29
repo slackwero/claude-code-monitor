@@ -47,7 +47,10 @@ function persistUsageCache() {
 
 // Skin persistence: the chosen skin (and mascot variant) survives restarts.
 const SKINS = ['claude', 'zelda', 'pokemon', 'cyberpunk', 'vaporwave', 'jarvis'];
-const SKIN_VARIANTS = { pokemon: ['pika', 'bulba', 'charma', 'squirt'] };
+const SKIN_VARIANTS = {
+  pokemon: ['pika', 'bulba', 'charma', 'squirt'],
+  claude: ['classic', 'smug', 'chevron', 'shades'],
+};
 const SKIN_FILE = path.join(ROOT, '.skin.json');
 let currentSkin = 'claude';
 let currentVariant = null; // null = mascota default del skin
