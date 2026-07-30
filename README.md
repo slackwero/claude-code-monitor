@@ -45,7 +45,7 @@ the experience gets even better: you can interact with the dashboard and
 - **8-bit chiptunes** — WebAudio-generated jingles for session start, task
   done, waiting for input, approvals and errors. No audio files. Press and
   hold the logo for ~1s to play all 11 jingles in sequence (handy sound check).
-- **Zero dependencies** — native Node server, vanilla JS frontend, local font.
+- **Zero dependencies** — native Node server, vanilla JS frontend, local fonts.
   Nothing leaves your LAN.
 
 ![Remote approval card](.github/approval.png)
@@ -101,7 +101,7 @@ claude-monitor hooks-off  remove the hooks
 
 ```
 Claude Code ──hooks──▶ forward-event.sh ──POST /hook──▶ ┌────────────────┐
-    │                                                    │  Node server   │──SSE──▶ browser / Nest Hub
+    │                                                    │  Node server   │──SSE──▶ browser / cast device
     └─PreToolUse──▶ approval-gate.sh ──long-poll──▶      │  (in-memory)   │◀─tap── APPROVE / DENY
                                                          └────────────────┘
 ```
@@ -123,7 +123,7 @@ curl 32s < hook 40s) so the terminal prompt always wins over a dead server.
 
 ## Troubleshooting
 
-- **Hub shows the dashboard but no sound** — cast receivers block autoplay:
+- **Dashboard casts but there's no sound** — cast receivers block autoplay:
   tap the "TAP FOR SOUND" chip once.
 - **Hooks don't fire** — they only load in sessions started after install.
 - **macOS: services die under launchd with EPERM on `~/Documents`** — macOS
@@ -131,8 +131,7 @@ curl 32s < hook 40s) so the terminal prompt always wins over a dead server.
   `~/claude-code-monitor` instead, or grant access in System Settings.
 - **Linux: services stop at logout** — run `loginctl enable-linger $USER`.
 - **Cast drops after ~10 min** — that's the smart display returning to ambient
-  mode; the
-  keepalive service re-casts automatically within a minute.
+  mode; the keepalive service re-casts automatically within a minute.
 - **No % bars, only $ estimates** — OAuth token not readable (no Keychain
   entry / credentials file); the dashboard falls back to ccusage estimates.
 
