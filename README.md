@@ -14,7 +14,7 @@ the experience gets even better: you can interact with the dashboard and
 - **Live session board** — every Claude Code session on your machine, its
   project, status (working / waiting / ready) and latest event, streamed over SSE.
 - **Remote touch approval** — flip the REMOTE toggle and Bash/Write/Edit
-  permission requests appear as cards on the Hub with APPROVE / DENY buttons
+  permission requests appear as cards on the screen with APPROVE / DENY buttons
   and a 28s countdown. Fail-open by design: if you don't answer (or the server
   is down), Claude Code falls back to its normal terminal prompt. Never blocks.
 - **Plan usage bars** — the same percentages `/usage` shows (5h block, weekly),
@@ -40,7 +40,7 @@ the experience gets even better: you can interact with the dashboard and
   once, and can be forced via
   `curl -X POST localhost:8787/skin -H 'Content-Type: application/json' -d '{"skin":"jarvis"}'`
   (also accepts `{"variant":"squirt"}`).
-- **Fits any screen** — the canvas is a fixed 1024×600 (the Hub's exact
+- **Fits any screen** — the canvas is a fixed 1024×600 (a common smart-display
   resolution) and auto-scales to fill any other browser window, centered.
 - **8-bit chiptunes** — WebAudio-generated jingles for session start, task
   done, waiting for input, approvals and errors. No audio files. Press and
@@ -59,8 +59,8 @@ the experience gets even better: you can interact with the dashboard and
 | [catt](https://github.com/skorokithakis/catt) (only for casting — requires [pipx](https://pipx.pypa.io)) | `pipx install catt` | `pipx install catt` |
 | Autostart | launchd | systemd (user units) |
 
-Any browser works if you don't have a Nest Hub (the dashboard auto-scales to
-the window) — casting is optional.
+Any browser works if you don't have a cast device (the dashboard auto-scales
+to the window) — casting is optional.
 
 ## Install
 
@@ -77,7 +77,7 @@ are preserved, with a timestamped backup), links the `claude-monitor` CLI into
 
 Hooks apply to **new** Claude Code sessions; restart any open ones.
 On macOS, the first run will ask to allow incoming connections for `node` —
-accept it (the Hub needs to reach your machine over the LAN).
+accept it (cast devices need to reach your machine over the LAN).
 
 **No cast device?** Skip the device step in the wizard and just open
 `http://localhost:8787` — or `http://<your-machine's-LAN-IP>:8787` from a
@@ -108,8 +108,8 @@ Claude Code ──hooks──▶ forward-event.sh ──POST /hook──▶ ┌�
 
 Claude Code hooks (registered in `~/.claude/settings.json`) forward their JSON
 to the local server, which keeps all state in memory and pushes deltas over
-SSE. The approval gate long-polls `POST /approval/request`; a tap on the Hub
-resolves it with a `permissionDecision`. Timeouts are chained (server 28s <
+SSE. The approval gate long-polls `POST /approval/request`; a tap on the
+dashboard resolves it with a `permissionDecision`. Timeouts are chained (server 28s <
 curl 32s < hook 40s) so the terminal prompt always wins over a dead server.
 
 ## Privacy & data
@@ -130,7 +130,8 @@ curl 32s < hook 40s) so the terminal prompt always wins over a dead server.
   TCC restricts launchd access to Documents; clone the repo somewhere like
   `~/claude-code-monitor` instead, or grant access in System Settings.
 - **Linux: services stop at logout** — run `loginctl enable-linger $USER`.
-- **Cast drops after ~10 min** — that's the Hub returning to ambient mode; the
+- **Cast drops after ~10 min** — that's the smart display returning to ambient
+  mode; the
   keepalive service re-casts automatically within a minute.
 - **No % bars, only $ estimates** — OAuth token not readable (no Keychain
   entry / credentials file); the dashboard falls back to ccusage estimates.
