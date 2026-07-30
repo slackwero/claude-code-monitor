@@ -56,7 +56,7 @@ the experience gets even better: you can interact with the dashboard and
 |---|---|---|
 | [Node.js](https://nodejs.org) ≥ 18 | ✓ | ✓ |
 | [Claude Code](https://claude.com/claude-code) | ✓ | ✓ |
-| [catt](https://github.com/skorokithakis/catt) (only for casting) | `pipx install catt` | `pipx install catt` |
+| [catt](https://github.com/skorokithakis/catt) (only for casting — requires [pipx](https://pipx.pypa.io)) | `pipx install catt` | `pipx install catt` |
 | Autostart | launchd | systemd (user units) |
 
 Any browser works if you don't have a Nest Hub (the dashboard auto-scales to
