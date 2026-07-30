@@ -60,8 +60,13 @@ async function main() {
   if (!device && hasCatt) {
     console.log('\nScanning your network for cast devices (~10s)...');
     const scan = sh('catt', ['scan'], { timeout: 30000 });
+    // catt scan lines look like "192.168.1.91 - Sala Juegos display - Google Inc. Google Nest Hub";
+    // the device name is only the middle field (the last one is manufacturer/model)
     const devices = (scan.stdout || '').split('\n')
-      .map((l) => l.split(' - ').slice(1).join(' - ')).filter(Boolean);
+      .map((l) => {
+        const parts = l.split(' - ');
+        return (parts.length >= 3 ? parts.slice(1, -1).join(' - ') : parts[1] || '').trim();
+      }).filter(Boolean);
     if (devices.length) {
       devices.forEach((d, i) => console.log(`  ${i + 1}. ${d}`));
       console.log('  0. Skip (browser-only, no casting)');
