@@ -1,9 +1,11 @@
 # claude-code-monitor
 
 A pixel-art kiosk dashboard that monitors your **Claude Code** sessions in real
-time — designed to be cast to a **Google Nest Hub** (2nd gen) so you can watch
-your agents work, hear 8-bit chiptune alerts, and **approve or deny permission
-requests by tapping the Hub's screen**.
+time — cast it to **any device that accepts screen casting** (Chromecast, smart
+displays, TVs) or open it in a browser, and watch your agents work with 8-bit
+chiptune alerts. If the screen is touch-capable — like a **Google Nest Hub** —
+the experience gets even better: you can interact with the dashboard and
+**approve or deny permission requests by tapping the screen**.
 
 ![Dashboard](.github/screenshot.png)
 
