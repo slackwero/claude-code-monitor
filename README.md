@@ -21,19 +21,23 @@ the experience gets even better: you can interact with the dashboard and
   read from Claude Code's own OAuth token, plus cost estimates via
   [ccusage](https://github.com/ryoppippi/ccusage).
 - **Skins** — tap the SKIN chip in the header to cycle six full identities
-  (see the [gallery](#skins-gallery)): **Claude**, the retro default — short-tap
-  the mascot to swap its eyes between classic, smug `¬ ¬`, chevron `> <` and
-  thug-life pixel shades; **Zelda**, an SNES game screen — grass-checker field,
-  dialog-box panels, Triforce gold and a pixel Link mascot; **Pokémon**, the
-  four starters — water field, Pikachu accents, Bulbasaur/Charmander bar
-  colors, and a short-tap on the mascot cycles Pikachu → Bulbasaur →
-  Charmander → Squirtle; **Cyberpunk** — chamfered neon panels and an
-  RGB-glitch mascot; **Vaporwave** — Monoton neon title over a purple
-  gradient; and **Jarvis** — a holographic HUD with grid, thin glowing panels
-  and an animated arc-reactor mascot. Modern-skin fonts (Orbitron, Rajdhani,
-  Monoton) are bundled locally under the OFL license — still zero CDNs.
-  The skin and mascot choice live on the server: they persist across restarts,
-  apply to every connected browser at once, and can be forced via
+  (see the [gallery](#skins-gallery)):
+  - **Claude** — the retro default; short-tap the mascot to swap its eyes
+    between classic, smug `¬ ¬`, chevron `> <` and thug-life pixel shades.
+  - **Zelda** — an SNES game screen: grass-checker field, dialog-box panels,
+    Triforce gold and a pixel Link mascot.
+  - **Pokémon** — the four starters: water field, Pikachu accents,
+    Bulbasaur/Charmander bar colors; a short-tap on the mascot cycles
+    Pikachu → Bulbasaur → Charmander → Squirtle.
+  - **Cyberpunk** — chamfered neon panels and an RGB-glitch mascot.
+  - **Vaporwave** — Monoton neon title over a purple gradient.
+  - **Jarvis** — a holographic HUD with grid, thin glowing panels and an
+    animated arc-reactor mascot.
+
+  Modern-skin fonts (Orbitron, Rajdhani, Monoton) are bundled locally under
+  the OFL license — still zero CDNs. The skin and mascot choice live on the
+  server: they persist across restarts, apply to every connected browser at
+  once, and can be forced via
   `curl -X POST localhost:8787/skin -H 'Content-Type: application/json' -d '{"skin":"jarvis"}'`
   (also accepts `{"variant":"squirt"}`).
 - **Fits any screen** — the canvas is a fixed 1024×600 (the Hub's exact
