@@ -1,5 +1,9 @@
 # claude-code-monitor
 
+![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-blue)
+![node](https://img.shields.io/badge/node-%E2%89%A518-brightgreen)
+![license](https://img.shields.io/badge/license-MIT-lightgrey)
+
 A pixel-art kiosk dashboard that monitors your **Claude Code** sessions in real
 time — cast it to **any device that accepts screen casting** (Chromecast, smart
 displays, TVs) or open it in a browser, and watch your agents work with 8-bit
